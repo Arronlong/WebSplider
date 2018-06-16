@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>web-splider</title>
+    <link rel="stylesheet" href="css/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-router@3.0.1/dist/vue-router.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuex@3.0.1/dist/vuex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@0.18.0/dist/axios.min.js"></script>
+</head>
+
+<body>
+    <div id="left">
+        <div class="show">
+            <div class="item" v-for="obj in linkdata">
+                <span class="author">{{obj.user}}</span><br><span class="time">{{obj.time}}</span><br>
+                <p><a :href="obj.url" target="_blank">链接</a></p>
+                <p class="meta">
+                    <span>备注:</span>{{obj.msg}}
+                </p>
+            </div>
+        </div>
+    </div>
+    <div id="main">
+        <fieldset>
+            <legend>web在线爬虫</legend>
+            <table>
+                <tbody>
+                    <tr>
+                        <td>爬取深度</td>
+                        <td>
+                            <select name="classNum" id="classNum" v-model="classnum">
+                            <option v-for="(clsnum,idx) in classNum">{{clsnum}}</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>目标网址</td>
+                        <td><input type="url" id="targetUrl" name="targetUrl" v-model="targetUrl"></td>
+                    </tr>
+                    <tr v-for="(clsnum, idx ) in classNum" v-if="classnum > idx">
+                        <td>{{idx+1}}级选择器</td>
+                        <td><input type="text" name="targetTags" v-model="classData[idx]"></td>
+                    </tr>
+                    <tr>
+                        <td>输出结果格式</td>
+                        <td>
+                            <textarea name="icontent" id="icontent" cols="30" rows="10" v-model="icontent"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="text-align: center"><button @click="show">提交</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            <p><a href="https://www.docmobile.cn/artical_detiail/luckyhh/1527928126366" target="_blank" style="float: left;">使用说明</a><a href="https://www.docmobile.cn/artical_detiail/luckyhh/1528369921460" target="_blank" style="float: right;">配置参考</a></p>
+        </fieldset>
+        <fieldset>
+            <legend>预览结果</legend>
+            <div>
+                {{getdata}}
+            </div>
+        </fieldset>
+        <button id="makeurl" title="注册登陆后才可以生成" @click="createInterface">生成数据接口</button>
+    </div>
+
+    <div id="loginOrgister">
+        <div class="wrap">
+            <div class="login_success" v-if="user">
+                <p>欢迎<a href="/user" target="_blank">{{user}}</a>登录</p>
+            </div>
+            <div class="to_login" v-else>
+                <router-link to="/login">登录</router-link>
+                <router-link to="/register">注册</router-link>
+                <router-view></router-view>
+            </div>
+        </div>
+    </div>
+
+
+    <template id="login">
+        <div>
+            <table>
+                <tr>
+                    <td>用户名</td>
+                    <td>
+                        <input type="text" v-model="login_user">
+                    </td>
+                </tr>
+                <tr>
+                    <td>密码</td>
+                    <td>
+                        <input type="password" v-model="login_password">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <button @click="tologin" minlength="6" maxlength="12">登录</button>
+                    </td>
+                    <td>
+                        <p v-if="login_confirm">认证失败</p>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </template>
+
+    <template id="register">
+        <div>
+            <table>
+                <tr>
+                    <td>用户名</td>
+                    <td>
+                        <input type="text" v-model="register_user">
+                    </td>
+                </tr>
+                <tr>
+                    <td>密码</td>
+                    <td>
+                        <input type="password" v-model="register_password" minlength="6" maxlength="12">
+                    </td>
+                </tr>
+                <tr>
+                    <td>确认密码</td>
+                    <td>
+                        <input type="password"  v-model="register_repeat_password" minlength="6" maxlength="12">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <button  @click="toregister">注册</button>
+                    </td>
+                    <td>
+                        <p v-if="reg_confirm">用户名已存在</p>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </template>
+
+    <script>
+        //Vuex
+        //全局状态，用户登录与否
+        const store = new Vuex.Store({
+            //数据状态
+            state: {
+                user: ""
+            },
+            //修改数据状态的唯一入口
+            //同步修改
+            mutations: {
+                set_user(state, user) {
+                    state.user = user;
+                }
+            },
+            //支持异步调用
+            //将返回结果通过mutattons修改数据
+            actions: {
+                set_user(context) {
+                    axios.get('/userstatus')
+                        .then(function(response) {
+                            if (response.data) {
+                                context.commit("set_user", response.data)
+                            }
+                        })
+                        .catch(function(error) {
+                            console.log(error);
+                        });
+                }
+            }
+        })
+
+
+        //第一部分、用户公开的接口数据
+        const show = new Vue({
+            el: "#left",
+            data: {
+                linkdata: []
+            },
+            methods: {
+                getPublicData() {
+                    const that = this;
+                    axios.get("/interface/public").then((res) => {
+                        for (let i = res.data.length - 1; i >= 0; i--) {
+                            that.linkdata.push(res.data[i]);
+                        }
+                    }).catch(err => console.log(err));
+                }
+            }
+
+        })
+
+
+
+        //第二部分创建Vue实例
+        //爬虫抓取设置面板与预览面板
+        //classData保存诶个标签的数据。选择器这里需要根据用户选择的爬取深度来动态显示标签输入框的个数。使用v-for指令很好解决
+        //Vue监听输入框的数据。使用v-model指令很好解决
+        //但是v-for与v-model会造成每个条目绑定同一个数据，不符合要求
+        //这里我们将v-model绑定到数组项中,可以很好解决问题
+        //但是，新问题是当我选择了深度为2，同时标签1、2都输入数据之后，又选择深度为1，此时数组中数据却不能动态变化
+        //解决方法是:监听用户选择，删除数组中某一项
+        //我们这里由于业务逻辑的关系，可以直接控制数组长度即可。
+
+        const main = new Vue({
+            el: "#main",
+            store,
+            data: {
+                classNum: [1, 2, 3], //爬虫深度
+                classData: [], //保存每个输入标签的数据
+                classnum: 1, //用户选择的爬取深度,默认为1
+                idx: 1, //深度默认选择1
+                targetUrl: '',
+                targetTags: '',
+                icontent: '',
+                getdata: '',
+            },
+            methods: {
+                show() {
+                    let that = this;
+                    that.getdata = "请等待...";
+                    //解决数组数据绑定失效问题
+                    that.classData.length = that.classnum;
+                    axios.get('/result', {
+                            params: {
+                                targetUrl: that.targetUrl,
+                                targetTags: that.classData,
+                                icontent: that.icontent,
+                                classNum: that.classnum
+                            }
+                        })
+                        .then(function(response) {
+                            that.getdata = response.data;
+                        })
+                        .catch(function(error) {
+                            that.getdata = error;
+                        });
+                },
+                createInterface() {
+                    let that = this;
+                    axios.get('/save', {
+                            params: {
+                                targetUrl: that.targetUrl,
+                                targetTags: that.classData,
+                                icontent: that.icontent,
+                                classNum: that.classnum
+                            }
+                        })
+                        .then(function(response) {
+                            try {
+                                const page = window.open(response.data, '_blank');
+                                if (page.closed) {
+                                    alert("自动打开被阻止,请拷贝以下链接\n" + response.data);
+                                }
+                            } catch (e) {
+                                alert("接口地址为\n" + response.data);
+                            }
+                        })
+                        .catch(function(error) {
+                            console.log('接口响应错误', error);
+                        });
+                }
+            },
+            computed: {
+                user() {
+                    return this.$store.state.user;
+                }
+            }
+        })
+
+        // 路由集
+        const routes = [{
+            path: "/login",
+            component: {
+                template: '#login',
+                data() {
+                    return {
+                        login_user: "",
+                        login_password: "",
+                        login_confirm: false,
+                    }
+                },
+                methods: {
+                    tologin() {
+                        let that = this;
+                        axios.get('/login', {
+                                params: {
+                                    login_user: that.login_user,
+                                    login_password: that.login_password,
+                                }
+                            })
+                            .then(function(response) {
+                                if (response.data === "success") {
+                                    store.commit('set_user', that.login_user);
+                                } else {
+                                    that.login_confirm = true;
+                                }
+                            })
+                            .catch(function(error) {
+                                that.login_confirm = true;
+                            });
+                    }
+                }
+            }
+        }, {
+            path: "/register",
+            component: {
+                template: "#register",
+                data() {
+                    return {
+                        register_user: "",
+                        register_password: "",
+                        register_repeat_password: "",
+                        reg_confirm: false
+                    }
+                },
+                methods: {
+                    toregister() {
+                        let that = this;
+                        axios.get('/register', {
+                                params: {
+                                    register_user: that.register_user,
+                                    register_password: that.register_password,
+                                    register_repeat_password: that.register_repeat_password
+                                }
+                            })
+                            .then(function(response) {
+                                if (response.data === "success") {
+                                    store.commit('set_user', that.register_user);
+                                } else {
+                                    that.reg_confirm = true;
+                                }
+                            })
+                            .catch(function(error) {
+                                that.reg_confirm = true;
+                            });
+
+                    }
+                }
+            }
+        }]
+
+
+        const router = new VueRouter({
+            routes
+        })
+
+        //登录注册面板实例
+        const user_status = new Vue({
+            el: "#loginOrgister",
+            router,
+            store,
+            computed: {
+                user() {
+                    return this.$store.state.user
+                }
+            }
+        })
+
+
+        window.onload = function() {
+            //调用store中的actions中的函数
+            //通过actions中的函数判断用户是否处于登录状态
+            store.dispatch('set_user');
+            show.getPublicData();
+        }
+    </script>
+</body>
+
+</html>

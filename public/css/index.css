@@ -1,0 +1,90 @@
+ html {
+     height: 100%;
+ }
+ 
+ body {
+     padding: 0px;
+     margin: 0px;
+     height: 100%;
+     position: relative;
+ }
+ 
+ #left {
+     position: fixed;
+     width: 15%;
+     background-color: aliceblue;
+     height: 100%;
+     overflow-y: scroll;
+     top: 0px;
+     left: 0px;
+ }
+ 
+ #left .show {
+     display: flex;
+     flex-direction: column;
+     background-color: aliceblue;
+     width: 100%;
+ }
+ 
+ #left .show .item {
+     border-bottom: 1px solid red;
+     margin: 20px 0px;
+     width: 100%;
+ }
+ 
+ #main {
+     width: 50%;
+     float: left;
+     margin-left: 20%;
+ }
+ 
+ #main table {
+     width: 80%;
+     height: 30px;
+     margin: 0 auto;
+ }
+ 
+ #main input {
+     width: 100%;
+     height: 30px;
+ }
+ 
+ #main textarea {
+     width: 100%;
+     height: 100px;
+ }
+ 
+ #main table tr {
+     height: 40px;
+ }
+ 
+ #main input textarea {
+     outline: none;
+ }
+ 
+ #makeurl {
+     display: block;
+     width: 100px;
+     height: 100px;
+     border-radius: 50px;
+     position: fixed;
+     right: 10px;
+     bottom: 10px;
+     background-color: antiquewhite;
+     font-size: 80%;
+     text-align: center;
+     line-height: 100px;
+     outline: none;
+ }
+ 
+ #makeurl:hover {
+     background-color: aqua;
+     cursor: pointer;
+     transition: 2s;
+ }
+ 
+ #loginOrgister {
+     width: 20%;
+     float: left;
+     margin-left: 5%;
+ }

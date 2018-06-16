@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>数据管理</title>
+    <style>
+        body {
+            padding: 0px;
+            margin: 0px;
+        }
+        
+        table {
+            text-align: center;
+            width: 100%;
+        }
+        
+        table tr {
+            background-color: antiquewhite
+        }
+        
+        table tr:first-child {
+            background-color: red;
+        }
+        
+        table tr td:nth-child(1),
+        table tr td:nth-child(6),
+        table tr td:nth-child(7) {
+            width: 10%;
+        }
+        
+        table tr td:nth-child(2),
+        table tr td:nth-child(3) {
+            width: 15%;
+        }
+        
+        table tr td:nth-child(4),
+        table tr td:nth-child(5) {
+            width: 20%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <h2>欢迎{{user}}进入数据管理界面</h2>
+        <table>
+            <tbody>
+                <tr>
+                    <td>序号</td>
+                    <td>ID</td>
+                    <td>时间</td>
+                    <td>链接</td>
+                    <td>备注</td>
+                    <td>权限</td>
+                    <td>删除</td>
+                </tr>
+                <tr v-for="(info,idx) in dataInfo">
+                    <td>{{idx+1}}</td>
+                    <td>{{info.cid}}</td>
+                    <td>{{info.time}}</td>
+                    <td><a :href="info.url" target="_blank">{{info.url}}</a></td>
+                    <td>
+                        {{info.msg}}
+                        <br>
+                        <button @click="isubmit(info.cid,idx)">更新</button>
+                    </td>
+                    <td>
+                        <button @click="ipublic(info.cid,idx)">{{info.public ==='2'?'公开':'关闭公开'}}</button>
+                    </td>
+                    <td>
+                        <button @click="idelete(idx)">删除</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios@0.18.0/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+    <script>
+        const app = new Vue({
+            el: "#app",
+            data: {
+                user: "",
+                dataInfo: [],
+            },
+            methods: {
+                load() {
+                    const that = this;
+                    axios.get('/userstatus').then(res => {
+                        if (res.data) {
+                            that.user = res.data;
+                            const iurl = `/user?name=${res.data}`
+                            axios.get(iurl).then(res => {
+                                res.data.forEach(item => {
+                                    that.dataInfo.push(item);
+                                });
+                            }).catch(err => console.log(err))
+                        }
+                    })
+                },
+                isubmit(cid, idx) {
+                    const ha = window.prompt("输入备注");
+                    if (ha) {
+                        this.dataInfo[idx].msg = ha;
+                        axios.get(`/toupdate?user=${this.user}&&cid=${cid}&&msg=${ha}`).then(res => {
+                            console.log(res.data);
+                        })
+                    }
+                },
+                ipublic(cid, idx) {
+                    this.dataInfo[idx].public = this.dataInfo[idx].public === '2' ? '1' : '2';
+                    const url = `/toupdate?user=${this.user}&&cid=${cid}&&public=${this.dataInfo[idx].public}`
+                    axios.get(url).then(res => {
+                        console.log(res.data);
+                    }).catch(err => {
+                        console.log(err);
+                    })
+                },
+                idelete(idx) {
+                    const delInfo = this.dataInfo.splice(idx, 1);
+                    const that = this;
+                    const url = `/todelete?user=${delInfo[0].user}&&cid=${delInfo[0].cid}`
+                    axios.get(url).then(res => {
+                        if (res.data['ok']) {
+                            alert("删除成功");
+                        } else {
+                            alert("操作失败");
+                        }
+                    }).catch(err => console.log(err))
+                }
+            }
+        })
+
+        window.onload = function() {
+            app.load();
+        }
+    </script>
+</body>
+
+</html>
