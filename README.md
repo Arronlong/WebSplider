@@ -17,11 +17,10 @@ WebSplider
 
 > * 支持接口权限管理，可选择将接口开放到WebSplider首页，供他人使用。
 
-注:目前只支持UTF8编码的网页。
 
 
 ## 界面
-![WebSplider](https://docmobile.cn/upload/image/plain/1007976278856437760.jpg)
+![WebSplider](https://docmobile.cn/upload/image/plain/1007976278856437760.jpg )
 
 
 ## 本地测试
@@ -126,7 +125,7 @@ http://localhost:3000
 
 
 ## TODO
-对GBK网页格式的抓取支持
+- [x] 对GBK网页格式的抓取支持
 
 
 ## 协议
