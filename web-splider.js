@@ -245,4 +245,4 @@ app.use(async function(ctx, next) {
     }
 });
 
-app.listen(3002);
+app.listen(3000);

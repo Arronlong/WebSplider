@@ -4,7 +4,7 @@
     "description": "web-splider",
     "main": "web-splider.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "start": "node web-splider.js"
     },
     "keywords": ["splider"],
     "author": "luckyhh",
