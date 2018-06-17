@@ -39,10 +39,18 @@
                         </td>
                     </tr>
                     <tr>
-                        <td>目标网址</td>
-                        <td><input type="url" id="targetUrl" name="targetUrl" v-model="targetUrl"></td>
+                        <td>网页编码</td>
+                        <td>
+                            <select name="charset" id="charset" v-model="charset">
+                                <option v-for="(charset,idx) in charSet ">{{charset}}</option>
+                            </select>
+                        </td>
                     </tr>
-                    <tr v-for="(clsnum, idx ) in classNum" v-if="classnum > idx">
+                    <tr>
+                        <td>目标网址</td>
+                        <td><input type="url " id="targetUrl " name="targetUrl " v-model="targetUrl "></td>
+                    </tr>
+                    <tr v-for="(clsnum, idx ) in classNum " v-if="classnum> idx">
                         <td>{{idx+1}}级选择器</td>
                         <td><input type="text" name="targetTags" v-model="classData[idx]"></td>
                     </tr>
@@ -211,6 +219,8 @@
             store,
             data: {
                 classNum: [1, 2, 3], //爬虫深度
+                charSet: ['utf-8', 'gbk'], //编码类别
+                charset: 'utf-8', //默认的网页编码
                 classData: [], //保存每个输入标签的数据
                 classnum: 1, //用户选择的爬取深度,默认为1
                 idx: 1, //深度默认选择1
@@ -230,7 +240,8 @@
                                 targetUrl: that.targetUrl,
                                 targetTags: that.classData,
                                 icontent: that.icontent,
-                                classNum: that.classnum
+                                classNum: that.classnum,
+                                mycharset: that.charset
                             }
                         })
                         .then(function(response) {
@@ -247,7 +258,8 @@
                                 targetUrl: that.targetUrl,
                                 targetTags: that.classData,
                                 icontent: that.icontent,
-                                classNum: that.classnum
+                                classNum: that.classnum,
+                                mycharset: that.charset
                             }
                         })
                         .then(function(response) {

@@ -46,7 +46,7 @@ app.use(async function(ctx, next) {
             try {
                 const icontent = JSON.parse(body.icontent);
                 ctx.response.type = 'json';
-                ctx.response.body = await splider(body.targetUrl, targetTagsAry, body.classNum, icontent);
+                ctx.response.body = await splider(body.targetUrl, targetTagsAry, body.classNum, icontent, body.mycharset);
             } catch (e) {
                 ctx.response.body = "Something was wrong\n" + e;
             }
@@ -62,7 +62,7 @@ app.use(async function(ctx, next) {
         const body = ctx.request.query;
         if (body.login_user && body.login_password) {
             const user = await User.get(body.login_user, true);
-            if (user && (body.login_password === user[0].password)) {
+            if (user.length > 0 && (body.login_password === user[0].password)) {
                 ctx.session.user = body.login_user;
                 ctx.response.body = "success";
             } else {
@@ -142,7 +142,8 @@ app.use(async function(ctx, next) {
                         time: `${time.year}-${time.month}-${time.date}  ${time.hour}:${time.minute}:${time.second}`,
                         cid,
                         public: '2',
-                        url: `${HOSTNAME}/interface?name=${ctx.session.user}&cid=${cid}`
+                        url: `${HOSTNAME}/interface?name=${ctx.session.user}&cid=${cid}`,
+                        mycharset: body.mycharset
                     };
                     const conf = new UserSpliderConf(userconf);
                     await conf.save();

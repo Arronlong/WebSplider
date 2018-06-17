@@ -3,6 +3,7 @@ const cheerio = require('cheerio');
 const durl = require('url');
 const mapReqUrl = require('./mapReqUrl');
 const fetchResult = require("./fetchResult");
+require('superagent-charset')(superagent);
 
 
 //爬虫一级直接可以定制数据
@@ -14,9 +15,9 @@ const fetchResult = require("./fetchResult");
 //tags指出抓取当前页面的目标
 //num指出抓取深度
 //content指出抓取目标页内容
-function splider(iurl, tags, num, content) {
+function splider(iurl, tags, num, content, mycharset) {
     return new Promise(function(resolve, reject) {
-        superagent.get(iurl, tags).end(function(err, res) {
+        superagent.get(iurl).charset(mycharset).end(function(err, res) {
             if (err) {
                 reject(err);
             } else {
@@ -55,7 +56,7 @@ function splider(iurl, tags, num, content) {
     }).then((result) => {
         if (num > 1) {
             //返回新的promise实例
-            return mapReqUrl(result, tags, 2, content, 1);
+            return mapReqUrl(result, tags, 2, content, 1, mycharset);
         } else {
             return result;
         }
@@ -63,7 +64,7 @@ function splider(iurl, tags, num, content) {
         return new Promise((resolve, reject) => reject(err));
     }).then((result) => {
         if (num > 2) {
-            return mapReqUrl(result, tags, 3, content, 2);
+            return mapReqUrl(result, tags, 3, content, 2, mycharset);
         } else {
             return result;
         }

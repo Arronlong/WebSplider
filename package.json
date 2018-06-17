@@ -1,12 +1,14 @@
 {
     "name": "web-splider",
-    "version": "3.0.0",
+    "version": "4.0.0",
     "description": "web-splider",
     "main": "web-splider.js",
     "scripts": {
         "start": "node web-splider.js"
     },
-    "keywords": ["splider"],
+    "keywords": [
+        "splider"
+    ],
     "author": "luckyhh",
     "license": "ISC",
     "dependencies": {
@@ -17,6 +19,7 @@
         "koa-session": "^5.8.1",
         "koa-static": "^4.0.3",
         "monk": "^6.0.6",
-        "superagent": "^3.8.3"
+        "superagent": "^3.8.3",
+        "superagent-charset": "^1.2.0"
     }
 }

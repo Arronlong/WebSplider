@@ -3,11 +3,12 @@ const cheerio = require('cheerio');
 const durl = require('url');
 const mapReqUrl = require('./mapReqUrl');
 const splider = require("./splider");
+require('superagent-charset')(superagent);
 
 //该函数使用superagent爬取页面
 //content指定输出数据格式
-function fetchResult(ourl, tags, num, content, tag_num, fn) {
-    superagent.get(ourl).end(function(err, res) {
+function fetchResult(ourl, tags, num, content, tag_num, mycharset, fn) {
+    superagent.get(ourl).charset(mycharset).end(function(err, res) {
         if (err) {
             fn(null, err);
         } else {

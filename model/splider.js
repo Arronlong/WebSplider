@@ -18,6 +18,7 @@ class UserSpliderConf {
         this.time = obj.time;
         this.cid = obj.cid;
         this.url = obj.url;
+        this.mycharset = obj.mycharset;
     };
     save() {
         const item = {
@@ -30,7 +31,8 @@ class UserSpliderConf {
             msg: this.msg,
             public: this.public,
             time: this.time,
-            url: this.url
+            url: this.url,
+            mycharset: this.mycharset
         }
         return collection.insert([item])
             .then((docs) => {
