@@ -19,7 +19,6 @@ require('superagent-charset')(superagent);
 //page是分页模式标志位
 //startPage是分页起始页码
 //endPage是尾页码
-// splider("https://cnodejs.org/?tab=all&page=*", tags, 1)
 
 function splider(iurl, tags, num, content, mycharset, page, startPage, endPage) {
     let mylinks = [];
