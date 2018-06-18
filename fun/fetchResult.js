@@ -7,12 +7,15 @@ require('superagent-charset')(superagent);
 
 //该函数使用superagent爬取页面
 //content指定输出数据格式
+// num指深度
+//tag_num指选择器数组中的哪一项
+
 function fetchResult(ourl, tags, num, content, tag_num, mycharset, fn) {
     superagent.get(ourl).charset(mycharset).end(function(err, res) {
         if (err) {
-            fn(null, err);
+            fn(err);
         } else {
-            let result = [];
+            let myresult = [];
             let $ = cheerio.load(res.text);
             let target
 
@@ -30,16 +33,17 @@ function fetchResult(ourl, tags, num, content, tag_num, mycharset, fn) {
                             } catch (e) {
                                 i_result[key] = "您输入的选择器有误。"
                             }
-                        })
-                        result.push(i_result);
+                        });
+                        myresult.push(i_result);
                     } else {
                         let i_result = durl.resolve(ourl, $element.attr('href'));
-                        result.push(i_result);
+                        myresult.push(i_result);
                     }
                 });
-                fn(null, result);
+                fn(null, myresult);
+
             } catch (e) {
-                fn(null, e);
+                fn(e);
             }
         }
     })

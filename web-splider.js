@@ -45,8 +45,7 @@ app.use(async function(ctx, next) {
             const targetTagsAry = typeof targetTags === "string" ? [targetTags] : targetTags;
             try {
                 const icontent = JSON.parse(body.icontent);
-                ctx.response.type = 'json';
-                ctx.response.body = await splider(body.targetUrl, targetTagsAry, body.classNum, icontent, body.mycharset);
+                ctx.response.body = await splider(body.targetUrl, targetTagsAry, body.classNum, icontent, body.mycharset, body.mode, body.startPage, body.endPage);
             } catch (e) {
                 ctx.response.body = "Something was wrong\n" + e;
             }
@@ -143,7 +142,10 @@ app.use(async function(ctx, next) {
                         cid,
                         public: '2',
                         url: `${HOSTNAME}/interface?name=${ctx.session.user}&cid=${cid}`,
-                        mycharset: body.mycharset
+                        mycharset: body.mycharset,
+                        mode: body.mode,
+                        startPage: body.startPage,
+                        endPage: body.endPage
                     };
                     const conf = new UserSpliderConf(userconf);
                     await conf.save();
@@ -171,8 +173,7 @@ app.use(async function(ctx, next) {
             if (confInfo.length < 1) {
                 ctx.response.body = "参数错误";
             } else {
-                ctx.response.type = 'json';
-                ctx.response.body = await splider(confInfo[0].targetUrl, confInfo[0].targetTags, confInfo[0].classNum, confInfo[0].icontent);
+                ctx.response.body = await splider(confInfo[0].targetUrl, confInfo[0].targetTags, confInfo[0].classNum, confInfo[0].icontent, confInfo[0].mycharset, confInfo[0].mode, confInfo[0].startPage, confInfo[0].endPage);
             }
         } else {
             ctx.response.body = "参数错误";

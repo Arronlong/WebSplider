@@ -3,15 +3,17 @@ const fetchResult = require("./fetchResult");
 
 //num抓取深度
 //content输出数据格式
-function mapReqUrl(result, tags, num, content, tag_num, mycharset) {
+function mapReqUrl(links, tags, num, content, tag_num, mycharset) {
     return new Promise(function(resolve, reject) {
-        async.mapLimit(result, 10, function(ourl, callback) {
-            fetchResult(ourl, tags, num, content, tag_num, mycharset, callback);
-        }, function(err, result) {
+        async.mapLimit(links, 5, function(ourl, fn) {
+            setTimeout(function() {
+                fetchResult(ourl, tags, num, content, tag_num, mycharset, fn);
+            }, Math.ceil(Math.random() * 500));
+        }, function(err, res) {
             if (err) {
                 reject(err);
             } else {
-                resolve(result);
+                resolve(res);
             }
         });
     });

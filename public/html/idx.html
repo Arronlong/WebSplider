@@ -46,6 +46,22 @@
                             </select>
                         </td>
                     </tr>
+
+                    <tr>
+                        <td>抓取模式</td>
+                        <td>
+                            <select name="modeset" id="modeset" v-model="modeset">
+                                <option v-for="(modeset,idx) in modeSet ">{{modeset}}</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr v-if="modeset === 'pagination'">
+                        <td>页码范围</td>
+                        <td>
+                            <input type="text" style="width: 10% ; height: 70%" placeholder="1" v-model="startPage">-
+                            <input type="text" style="width: 10% ; height: 70%" placeholder="100" v-model="endPage">
+                        </td>
+                    </tr>
                     <tr>
                         <td>目标网址</td>
                         <td><input type="url " id="targetUrl " name="targetUrl " v-model="targetUrl "></td>
@@ -221,6 +237,10 @@
                 classNum: [1, 2, 3], //爬虫深度
                 charSet: ['utf-8', 'gbk'], //编码类别
                 charset: 'utf-8', //默认的网页编码
+                modeSet: ['plain', 'pagination'], //抓取模式:普通与分页
+                modeset: 'plain', //默认模式
+                startPage: "", //分页模式起始页
+                endPage: "", //分页模式尾页
                 classData: [], //保存每个输入标签的数据
                 classnum: 1, //用户选择的爬取深度,默认为1
                 idx: 1, //深度默认选择1
@@ -241,7 +261,10 @@
                                 targetTags: that.classData,
                                 icontent: that.icontent,
                                 classNum: that.classnum,
-                                mycharset: that.charset
+                                mycharset: that.charset,
+                                mode: that.modeset,
+                                startPage: that.startPage,
+                                endPage: that.endPage
                             }
                         })
                         .then(function(response) {
@@ -259,7 +282,10 @@
                                 targetTags: that.classData,
                                 icontent: that.icontent,
                                 classNum: that.classnum,
-                                mycharset: that.charset
+                                mycharset: that.charset,
+                                mode: that.modeset,
+                                startPage: that.startPage,
+                                endPage: that.endPage
                             }
                         })
                         .then(function(response) {

@@ -15,62 +15,40 @@ require('superagent-charset')(superagent);
 //tags指出抓取当前页面的目标
 //num指出抓取深度
 //content指出抓取目标页内容
-function splider(iurl, tags, num, content, mycharset) {
-    return new Promise(function(resolve, reject) {
-        superagent.get(iurl).charset(mycharset).end(function(err, res) {
-            if (err) {
-                reject(err);
-            } else {
-                let result = [];
-                let $ = cheerio.load(res.text);
-                let target;
 
-                //tags输入有误
-                try {
-                    target = eval(tags[0]); //难点，将接收到的字符串转化为$对象，当然，这里要进行一些输入判断
-                    target.each(function(idx, element) {
-                        let $element = $(element);
-                        if (num == 1) {
-                            let i_result = {};
-                            let i_key = Object.keys(content);
-                            let i_value = Object.values(content);
-                            i_key.forEach(function(key, idx) {
-                                try {
-                                    i_result[key] = eval(i_value[idx]);
-                                } catch (e) {
-                                    i_result[key] = "您输入的选择器有误。报错代码:" + e;
-                                }
-                            })
-                            result.push(i_result);
-                        } else {
-                            let i_result = durl.resolve(iurl, $element.attr('href')); //这里补全网址是为了下面的抓取
-                            result.push(i_result);
-                        }
-                    });
-                    resolve(result);
-                } catch (e) {
-                    reject(e);
-                }
+//page是分页模式标志位
+//startPage是分页起始页码
+//endPage是尾页码
+// splider("https://cnodejs.org/?tab=all&page=*", tags, 1)
+
+function splider(iurl, tags, num, content, mycharset, page, startPage, endPage) {
+    let mylinks = [];
+    if (page === 'pagination' && startPage && endPage && /.*\*/g.test(iurl)) {
+        for (let i = startPage; endPage >= i; i++) {
+            mylinks.push(iurl.replace('*', i));
+        }
+    } else {
+        mylinks.push(iurl);
+    }
+
+    return mapReqUrl(mylinks, tags, num, content, 0, mycharset)
+        .then((result) => {
+            if (num > 1) {
+                return mapReqUrl(result[0], tags, num, content, 1, mycharset);
+            } else {
+                return result;
             }
+        }, (err) => {
+            return new Promise((resolve, reject) => reject(err));
+        }).then((result) => {
+            if (num > 2) {
+                return mapReqUrl(result[0], tags, num, content, 2, mycharset);
+            } else {
+                return result;
+            }
+        }, (err) => {
+            return new Promise((resolve, reject) => reject(err));
         })
-    }).then((result) => {
-        if (num > 1) {
-            //返回新的promise实例
-            return mapReqUrl(result, tags, 2, content, 1, mycharset);
-        } else {
-            return result;
-        }
-    }, (err) => {
-        return new Promise((resolve, reject) => reject(err));
-    }).then((result) => {
-        if (num > 2) {
-            return mapReqUrl(result, tags, 3, content, 2, mycharset);
-        } else {
-            return result;
-        }
-    }, (err) => {
-        return new Promise((resolve, reject) => reject(err));
-    })
-}
+};
 
 module.exports = splider;
