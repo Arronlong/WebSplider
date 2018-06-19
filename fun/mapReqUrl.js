@@ -8,7 +8,7 @@ function mapReqUrl(links, tags, num, content, tag_num, mycharset) {
         async.mapLimit(links, 5, function(ourl, fn) {
             setTimeout(function() {
                 fetchResult(ourl, tags, num, content, tag_num, mycharset, fn);
-            }, Math.ceil(Math.random() * 500));
+            }, Math.ceil(Math.random() * 50));
         }, function(err, res) {
             if (err) {
                 reject(err);

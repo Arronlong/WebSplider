@@ -1,7 +1,6 @@
 const fs = require('fs');
 const Koa = require('koa');
 const path = require('path');
-const koaBody = require('koa-body'); //koa本身无法解析post请求
 const serve = require("koa-static"); //静态文件夹
 const session = require('koa-session'); //存储session
 const User = require("./model/user");
@@ -14,9 +13,6 @@ const app = new Koa();
 
 //设置静态目录
 app.use(serve(__dirname + "/public"));
-
-//解析post提交(后来全改成get提交了，所以这个没有用到)
-app.use(koaBody());
 
 //应该是session加密用的
 app.keys = ["I Love You"];
