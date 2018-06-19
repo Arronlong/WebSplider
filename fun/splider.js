@@ -29,8 +29,12 @@ function concatAry(myary) {
 
 function splider(iurl, tags, num, content, mycharset, page, startPage, endPage) {
     let mylinks = [];
+
+    if (!startPage) {
+        startPage = 0;
+    }
     // 分页模式下,链接构建
-    if (page === 'pagination' && startPage && endPage && /.*\*/g.test(iurl)) {
+    if (page === 'pagination' && endPage && /[http|https]:\/\/.+\*/g.test(iurl)) {
         for (let i = startPage; endPage >= i; i++) {
             mylinks.push(iurl.replace('*', i));
         }

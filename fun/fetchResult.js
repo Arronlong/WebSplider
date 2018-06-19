@@ -26,11 +26,13 @@ const UserAgent = [
     'Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)',
     'Sogou web spider/4.0(+http://www.sogou.com/docs/help/webmasters.htm#07)'
 ]
+
+
 const reqHeader = {
     'Accept': 'text/html, application/xhtml+xml,application/xml; q=0.9, image/webp,image/apng, */*;q=0.8',
     'Accept-Encoding': 'gzip, deflate, br',
     'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,zh-TW;q=0.7,ja;q=0.6',
-    'User-Agent': UserAgent[Math.floor(Math.random() * UserAgent.length) - 1]
+    'User-Agent': UserAgent[Math.floor(Math.random() * UserAgent.length + 1) - 1]
 }
 
 function fetchResult(ourl, tags, num, content, tag_num, mycharset, fn) {
