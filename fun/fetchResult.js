@@ -35,6 +35,7 @@ const reqHeader = {
     'User-Agent': UserAgent[Math.floor(Math.random() * UserAgent.length + 1) - 1]
 }
 
+
 function fetchResult(ourl, tags, num, content, tag_num, mycharset, fn) {
     superagent.get(ourl).set(reqHeader).charset(mycharset).end(function(err, res) {
         if (err) {
