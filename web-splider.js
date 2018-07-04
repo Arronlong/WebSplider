@@ -1,12 +1,14 @@
-const fs = require('fs');
-const Koa = require('koa');
-const path = require('path');
+const fs = require("fs");
+const Koa = require("koa");
+const path = require("path");
 const serve = require("koa-static"); //静态文件夹
-const session = require('koa-session'); //存储session
+const session = require("koa-session"); //存储session
 const User = require("./model/user");
 const UserSpliderConf = require("./model/splider");
+const Result = require("./model/result");
 const splider = require("./fun/splider");
 const itime = require("./fun/time");
+const autoUpdate = require("./fun/setInterval");
 const CONFIG = require("./conf/session_conf");
 const HOSTNAME = require("./conf/conf").HOSTNAME;
 const app = new Koa();
@@ -159,17 +161,31 @@ app.use(async function(ctx, next) {
 });
 
 //数据接口生成
+//逻辑:根据URL中的昵称与id判断是否合法,根据数据库中是否有记录判断是否第一次请求，第一次请求使用爬虫，接下来的使用数据库存的数据
 app.use(async function(ctx, next) {
     if (ctx.request.path === "/interface" && ctx.request.method === "GET") {
         const body = ctx.request.query;
         if (body.name && body.cid) {
             const confInfo = await UserSpliderConf.get(body.name, body.cid, false);
 
-            //判断找到该用户没有
+            //判断找到该用户
             if (confInfo.length < 1) {
                 ctx.response.body = "参数错误";
             } else {
-                ctx.response.body = await splider(confInfo[0].targetUrl, confInfo[0].targetTags, confInfo[0].classNum, confInfo[0].icontent, confInfo[0].mycharset, confInfo[0].mode, confInfo[0].startPage, confInfo[0].endPage);
+                const resultInfo = await Result.get({ cid: body.cid });
+                //判断是不是第一次请求
+                if (resultInfo.length < 1) {
+                    const result = await splider(confInfo[0].targetUrl, confInfo[0].targetTags, confInfo[0].classNum, confInfo[0].icontent, confInfo[0].mycharset, confInfo[0].mode, confInfo[0].startPage, confInfo[0].endPage);
+                    const item = new Result({ cid: body.cid, result });
+                    const myresult = await item.save();
+
+                    //自动更新
+                    autoUpdate(body.cid, confInfo[0]);
+
+                    ctx.response.body = myresult.result;
+                } else {
+                    ctx.response.body = resultInfo[0].result;
+                }
             }
         } else {
             ctx.response.body = "参数错误";
