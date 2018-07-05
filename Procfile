@@ -1,1 +1,1 @@
-web: node web-splider.js
+web: node WebSplider.js
