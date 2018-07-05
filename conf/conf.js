@@ -1,4 +1,4 @@
 module.exports = {
-    HOSTNAME: "http://localhost:3000",
-    DataBaseUrl: "localhost:27017/websplider"
+    DataBaseUrl: "localhost:27017/websplider",
+    HOSTNAME: "http://localhost:3000"
 }

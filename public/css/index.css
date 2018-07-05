@@ -92,3 +92,20 @@
      float: left;
      margin-left: 5%;
  }
+ 
+ @media all and (max-width:700px) {
+     #left {
+         display: none;
+     }
+     #loginOrgister {
+         display: none;
+     }
+     #makeurl {
+         display: none;
+     }
+     #main {
+         width: 90%;
+         margin: 30px auto;
+         float: none;
+     }
+ }

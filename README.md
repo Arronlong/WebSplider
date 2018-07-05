@@ -148,8 +148,16 @@ CNode的分页网址
 
 > * [WebSplider参考配置](https://docmobile.cn/artical_detiail/luckyhh/1528369921460)
 
-> * [基于WebSplider的在线新闻站点开发](https://www.docmobile.cn/artical_detiail/luckyhh/1528989508215)
+> * [基于WebSplider的在线新闻模块开发](https://www.docmobile.cn/artical_detiail/luckyhh/1528989508215)
 
+
+## 更新日志
+
+[WebSplider更新日志](https://www.docmobile.cn/artical_detiail/luckyhh/1530767352093)
+
+## 其他
+
+关于HTTP代理。我做了个小项目[HttpProxy](http://httpproxy.docmobile.cn)，用来查询西刺代理中可用的代理，结果发现没几个能用的。于是，WebSplider项目中没有使用代理，作为替代，我选择将爬取结果存到数据库，由系统自动更新数据，而不是由用户。这样可以保证抓取数据不会被对方发现。
 
 ## TODO
 - [x] 对GBK网页格式的抓取支持
