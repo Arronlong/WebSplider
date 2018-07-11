@@ -95,9 +95,9 @@
                             that.user = res.data;
                             const iurl = `/user?name=${res.data}`
                             axios.get(iurl).then(res => {
-                                res.data.forEach(item => {
-                                    that.dataInfo.push(item);
-                                });
+                                for (let i = res.data.length - 1; i >= 0; i--) {
+                                    that.dataInfo.push(res.data[i]);
+                                }
                             }).catch(err => console.log(err))
                         }
                     })

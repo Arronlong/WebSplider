@@ -1,17 +1,19 @@
 const fs = require("fs");
 const Koa = require("koa");
-const path = require("path");
 const serve = require("koa-static"); //静态文件夹
 const session = require("koa-session"); //存储session
 const User = require("./model/UserInfo");
 const UserSpliderConf = require("./model/UserSpliderConf");
 const Result = require("./model/UserSpliderResult");
 const splider = require("./lib/splider");
+const getProxy = require("./lib/proxy");
 const itime = require("./lib/time");
 const autoUpdate = require("./lib/setInterval");
 const CONFIG = require("./conf/session_conf");
 const HOSTNAME = require("./conf/conf").HOSTNAME;
 const app = new Koa();
+
+
 
 //设置静态目录
 app.use(serve(__dirname + "/public"));
@@ -25,7 +27,7 @@ app.use(session(CONFIG, app));
 app.use(async function(ctx, next) {
     if (ctx.request.path === "/" && ctx.request.method === "GET") {
         ctx.response.type = 'html';
-        ctx.response.body = await fs.ReadStream(__dirname + '/public/html/idx.html');
+        ctx.response.body = await fs.ReadStream(__dirname + '/public/html/index.html');
     } else {
         await next();
     }
@@ -37,13 +39,14 @@ app.use(async function(ctx, next) {
         const body = ctx.request.query;
         //使用axios进行get数据传输。传输数组，返回的键值是下面这个
         const targetTags = body['targetTags[]'];
+
         if (!body.targetUrl || !targetTags || !body.icontent) {
             ctx.response.body = "输入不完整";
         } else {
             const targetTagsAry = typeof targetTags === "string" ? [targetTags] : targetTags;
             try {
                 const icontent = JSON.parse(body.icontent);
-                ctx.response.body = await splider(body.targetUrl, targetTagsAry, body.classNum, icontent, body.mycharset, body.mode, body.startPage, body.endPage);
+                ctx.response.body = await splider(body.targetUrl, targetTagsAry, body.classNum, icontent, body.mycharset, body.mode, body.startPage, body.endPage, await getProxy(body));
             } catch (e) {
                 ctx.response.body = "Something was wrong\n" + e;
             }
@@ -143,7 +146,9 @@ app.use(async function(ctx, next) {
                         mycharset: body.mycharset,
                         mode: body.mode,
                         startPage: body.startPage,
-                        endPage: body.endPage
+                        endPage: body.endPage,
+                        proxymode: body.proxymode,
+                        inputproxy: eval(body.inputproxy)
                     };
                     const conf = new UserSpliderConf(userconf);
                     await conf.save();
@@ -175,7 +180,7 @@ app.use(async function(ctx, next) {
                 const resultInfo = await Result.get({ cid: body.cid });
                 //判断是不是第一次请求
                 if (resultInfo.length < 1) {
-                    const result = await splider(confInfo[0].targetUrl, confInfo[0].targetTags, confInfo[0].classNum, confInfo[0].icontent, confInfo[0].mycharset, confInfo[0].mode, confInfo[0].startPage, confInfo[0].endPage);
+                    const result = await splider(confInfo[0].targetUrl, confInfo[0].targetTags, confInfo[0].classNum, confInfo[0].icontent, confInfo[0].mycharset, confInfo[0].mode, confInfo[0].startPage, confInfo[0].endPage, await getProxy(confInfo[0]));
                     const item = new Result({ cid: body.cid, result });
                     const myresult = await item.save();
 
@@ -215,7 +220,7 @@ app.use(async function(ctx, next) {
             }
         } else {
             ctx.response.type = "html";
-            ctx.response.body = await fs.ReadStream(__dirname + "/public/html/userdatamanage.html")
+            ctx.response.body = await fs.ReadStream(__dirname + "/public/html/UserDataManage.html")
         }
     } else {
         await next();

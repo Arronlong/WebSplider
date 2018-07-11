@@ -22,6 +22,8 @@ class UserSpliderConf {
         this.mode = obj.mode;
         this.startPage = obj.startPage;
         this.endPage = obj.endPage;
+        this.proxymode = obj.proxymode;
+        this.inputproxy = obj.inputproxy
     };
     save() {
         const item = {
@@ -38,7 +40,9 @@ class UserSpliderConf {
             mycharset: this.mycharset,
             mode: this.mode,
             startPage: this.startPage,
-            endPage: this.endPage
+            endPage: this.endPage,
+            proxymode: this.proxymode,
+            inputproxy: this.inputproxy
         }
         return collection.insert([item])
             .then((docs) => {

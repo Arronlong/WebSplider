@@ -76,6 +76,22 @@
                             <textarea name="icontent" id="icontent" cols="30" rows="10" v-model="icontent"></textarea>
                         </td>
                     </tr>
+
+                    <tr>
+                        <td>代理</td>
+                        <td>
+                            <select name="proxymode" id="proxymode" v-model="proxymode">
+                                <option v-for="proxymode in proxymodes ">{{proxymode}}</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr v-if="proxymode === '自定义代理'">
+                        <td>输入代理</td>
+                        <td>
+                            <input type="text" placeholder="示例:['http://123.234.456.678:1234','http://123.234.456.678:1234']" v-model="inputproxy">
+                        </td>
+                    </tr>
+
                     <tr>
                         <td colspan="2" style="text-align: center"><button @click="show">提交</button></td>
                     </tr>
@@ -87,6 +103,7 @@
                 <a href="https://www.docmobile.cn/artical_detiail/luckyhh/1530767352093" target="_blank">更新日志</a>
                 <a href="https://github.com/LuckyHH/WebSplider" target="_blank">项目地址</a>
                 <a href="https://github.com/LuckyHH/WebSplider/issues/1" target="_blank">报错</a>
+                <a href="http://httpproxy.docmobile.cn" target="_blank">HttpProxy</a>
             </p>
         </fieldset>
         <fieldset>
@@ -250,6 +267,9 @@
                 classData: [], //保存每个输入标签的数据
                 classnum: 1, //用户选择的爬取深度,默认为1
                 idx: 1, //深度默认选择1
+                proxymodes: ['无代理', '西刺代理', '自定义代理'],
+                proxymode: '无代理',
+                inputproxy: '',
                 targetUrl: '',
                 targetTags: '',
                 icontent: '',
@@ -270,7 +290,9 @@
                                 mycharset: that.charset,
                                 mode: that.modeset,
                                 startPage: that.startPage,
-                                endPage: that.endPage
+                                endPage: that.endPage,
+                                proxymode: that.proxymode,
+                                inputproxy: that.inputproxy
                             }
                         })
                         .then(function(response) {
@@ -291,7 +313,9 @@
                                 mycharset: that.charset,
                                 mode: that.modeset,
                                 startPage: that.startPage,
-                                endPage: that.endPage
+                                endPage: that.endPage,
+                                proxymode: that.proxymode,
+                                inputproxy: that.inputproxy
                             }
                         })
                         .then(function(response) {
