@@ -7,16 +7,22 @@
      margin: 0px;
      height: 100%;
      position: relative;
+     font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Hiragino Sans GB", "Heiti SC", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+     overflow-y: hidden;
+ }
+ 
+ .light {
+     color: red;
  }
  
  #left {
      position: fixed;
      width: 15%;
-     background-color: aliceblue;
      height: 100%;
      overflow-y: scroll;
      top: 0px;
      left: 0px;
+     overflow-y: scroll;
  }
  
  #left .show {
@@ -28,13 +34,93 @@
  
  #left .show .item {
      border-bottom: 1px solid red;
-     margin: 20px 0px;
+     padding: 20px 0px;
      width: 100%;
+ }
+ 
+ #left .moreshare {
+     height: 50px;
+     display: block;
+     background-color: beige;
+     text-align: center;
+ }
+ 
+ #sharewrap {
+     position: absolute;
+     display: none;
+     background-image: url(../imgs/bg2.jpeg);
+     background-size: cover;
+     margin-top: 10px;
+ }
+ 
+ #sharewrap #sharepanel {
+     float: left;
+     width: 50%;
+     margin: 0px 5%;
+ }
+ 
+ #sharewrap #sharepanel section {
+     border-bottom: 1px solid red;
+     padding: 15px;
+ }
+ 
+ #sharewrap #sharepanel section a {
+     text-decoration: none;
+ }
+ 
+ #sharewrap #sharepanel section:hover {
+     background-color: rgba(0, 154, 97, 0.08);
+ }
+ 
+ #sharewrap #shareconfig {
+     float: left;
+     width: 40%;
+ }
+ 
+ #sharewrap #shareconfig table tr td {
+     padding: 10px 0px;
+ }
+ 
+ #sharewrap #shareconfig table tr:not(:first-child) td:first-child {
+     width: 25%;
+ }
+ 
+ #sharewrap .btns {
+     height: 100px;
+     line-height: 100px;
+ }
+ 
+ #sharewrap .pagebtn {
+     display: block;
+     float: left;
+     width: 40px;
+     height: 30px;
+     background-color: white;
+     text-align: center;
+     line-height: 30px;
+     margin: 0px 5px;
+     cursor: pointer;
+ }
+ 
+ #sharewrap .close {
+     position: absolute;
+     right: -10px;
+     top: -10px;
+     text-align: center;
+     font-size: 2em;
+     display: block;
+     height: 30px;
+     line-height: 30px;
+     width: 30px;
+     border-radius: 15px;
+     cursor: pointer;
+     background-color: red;
  }
  
  #main {
      width: 50%;
      float: left;
+     margin-top: 20px;
      margin-left: 20%;
  }
  

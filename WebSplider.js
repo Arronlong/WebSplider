@@ -18,7 +18,7 @@ const app = new Koa();
 //设置静态目录
 app.use(serve(__dirname + "/public"));
 
-//应该是session加密用的
+//session加密用的
 app.keys = ["I Love You"];
 app.use(session(CONFIG, app));
 
@@ -37,18 +37,19 @@ app.use(async function(ctx, next) {
 app.use(async function(ctx, next) {
     if (ctx.request.path === "/result" && ctx.request.method === "GET") {
         const body = ctx.request.query;
-        //使用axios进行get数据传输。传输数组，返回的键值是下面这个
-        const targetTags = body['targetTags[]'];
-
-        if (!body.targetUrl || !targetTags || !body.icontent) {
+        //使用axios进行get传输数组。
+        if (!body.targetUrl || !body.targetTags || !body.icontent) {
             ctx.response.body = "输入不完整";
         } else {
-            const targetTagsAry = typeof targetTags === "string" ? [targetTags] : targetTags;
             try {
+                const targetTags = body.targetTags.split(',');
                 const icontent = JSON.parse(body.icontent);
-                ctx.response.body = await splider(body.targetUrl, targetTagsAry, body.classNum, icontent, body.mycharset, body.mode, body.startPage, body.endPage, await getProxy(body));
+                ctx.response.body = {
+                    'time': new Date(),
+                    'data': await splider(body.targetUrl, targetTags, body.classNum, icontent, body.mycharset, body.mode, body.startPage, body.endPage, await getProxy(body))
+                };
             } catch (e) {
-                ctx.response.body = "Something was wrong\n" + e;
+                ctx.response.body = "JSON格式错误,错误详情:" + e;
             }
         }
     } else {
@@ -123,11 +124,10 @@ app.use(async function(ctx, next) {
     if (ctx.request.path === "/save" && ctx.request.method === "GET") {
         if (ctx.session.user) {
             const body = ctx.request.query;
-            const targetTags = body['targetTags[]'];
-            if (!body.targetUrl || !targetTags || !body.icontent) {
+            if (!body.targetUrl || !body.targetTags || !body.icontent) {
                 ctx.response.body = "保存失败,输入不完整";
             } else {
-                const targetTagsAry = typeof targetTags === "string" ? [targetTags] : targetTags;
+                const targetTags = body.targetTags.split(',');
                 try {
                     const icontent = JSON.parse(body.icontent);
                     const time = itime();
@@ -135,7 +135,7 @@ app.use(async function(ctx, next) {
                     const userconf = {
                         user: ctx.session.user,
                         targetUrl: body.targetUrl,
-                        targetTags: targetTagsAry,
+                        targetTags: targetTags,
                         icontent: icontent,
                         classNum: body.classNum,
                         msg: '',
@@ -148,7 +148,7 @@ app.use(async function(ctx, next) {
                         startPage: body.startPage,
                         endPage: body.endPage,
                         proxymode: body.proxymode,
-                        inputproxy: eval(body.inputproxy)
+                        inputproxy: body.inputproxy
                     };
                     const conf = new UserSpliderConf(userconf);
                     await conf.save();
@@ -178,18 +178,43 @@ app.use(async function(ctx, next) {
                 ctx.response.body = "参数错误";
             } else {
                 const resultInfo = await Result.get({ cid: body.cid });
+                const time = new Date();
+
                 //判断是不是第一次请求
+                //数据库中保存数据更新时间，避免程序意外重启之后，定时任务失效
+                //数据每天更新一次，请求时的时间比数据库中时间大24个小时，说明数据没有更新
                 if (resultInfo.length < 1) {
+
                     const result = await splider(confInfo[0].targetUrl, confInfo[0].targetTags, confInfo[0].classNum, confInfo[0].icontent, confInfo[0].mycharset, confInfo[0].mode, confInfo[0].startPage, confInfo[0].endPage, await getProxy(confInfo[0]));
-                    const item = new Result({ cid: body.cid, result });
+                    const item = new Result({ cid: body.cid, result, time: new Date() });
                     const myresult = await item.save();
 
                     //自动更新
                     autoUpdate(body.cid, confInfo[0]);
 
-                    ctx.response.body = myresult.result;
+                    ctx.response.body = {
+                        'time': time,
+                        'data': myresult.result
+                    };
+
+                } else if (Math.floor(((time.getTime() - resultInfo[0].time.getTime()) / (24 * 3600 * 1000))) > 1) {
+
+                    const result = await splider(confInfo[0].targetUrl, confInfo[0].targetTags, confInfo[0].classNum, confInfo[0].icontent, confInfo[0].mycharset, confInfo[0].mode, confInfo[0].startPage, confInfo[0].endPage, await getProxy(confInfo[0]));
+                    Result.update({ cid: body.cid }, { result, time });
+
+                    //自动更新
+                    autoUpdate(body.cid, confInfo[0]);
+
+                    ctx.response.body = {
+                        'time': time,
+                        'data': result
+                    };
+
                 } else {
-                    ctx.response.body = resultInfo[0].result;
+                    ctx.response.body = {
+                        'time': resultInfo[0].time,
+                        'data': resultInfo[0].result
+                    }
                 }
             }
         } else {
@@ -203,7 +228,21 @@ app.use(async function(ctx, next) {
 //用户公布的数据接口
 app.use(async function(ctx, next) {
     if (ctx.request.path === "/interface/public" && ctx.request.method === "GET") {
-        ctx.response.body = await UserSpliderConf.get(null, null, '1');
+        ctx.response.body = (await UserSpliderConf.get(null, null, '1')).splice(0, 5);
+    } else {
+        await next();
+    }
+});
+
+//所有分享的数据接口
+app.use(async function(ctx, next) {
+    if (ctx.request.path === "/interface/pub" && ctx.request.method === "GET") {
+        let result = await UserSpliderConf.get(null, null, '1');
+
+        ctx.response.body = {
+            allpage: Math.ceil(result.length / 5),
+            data: result.splice(parseInt(ctx.request.query.page) * 5, 5)
+        };
     } else {
         await next();
     }

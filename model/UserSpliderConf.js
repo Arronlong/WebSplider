@@ -64,7 +64,7 @@ UserSpliderConf.get = function(user, cid, public) {
     cid ? obj.cid = cid : null;
     public ? obj.public = public : null;
 
-    return collection.find(obj).then((docs) => {
+    return collection.find(obj, { sort: { time: -1 } }).then((docs) => {
         return docs;
     }).catch((err) => {
         return err;

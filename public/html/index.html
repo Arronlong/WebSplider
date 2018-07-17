@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="keywords" content="WebSplider,爬虫,Node.js,Superagent,Cheerio,HTTP代理,async并发请求">
+    <meta name="description" content="WebSplider在线爬虫是一个基于Node.js的爬虫系统。它提供免费公开的数据抓取服务，支持生成数据API。">
     <title>WebSplider在线爬虫</title>
     <link rel="stylesheet" href="css/index.css">
     <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
@@ -16,6 +18,7 @@
 <body>
     <div id="left">
         <div class="show">
+            <h2>最近更新</h2>
             <div class="item" v-for="obj in linkdata">
                 <span class="author">{{obj.user}}</span><br><span class="time">{{obj.time}}</span><br>
                 <p><a :href="obj.url" target="_blank">链接</a></p>
@@ -128,6 +131,20 @@
         </div>
     </div>
 
+    <div id="sharewrap">
+        <div id="sharepanel">
+            <h2>所有分享</h2>
+            <section v-for="share in allShare" @mouseover="getdetial(share)">
+                <span class="url"><a :href="share.url" target="_blank">{{share.url}}</a></span><br>
+                <span class="time">{{share.time}}</span><br>
+                <div>备注:{{share.msg}} </div>
+            </section>
+            <p class="btns"><span v-for="page in allPages" @click="getshare(page-1)" class="pagebtn">{{page}}</span></p>
+        </div>
+        <div id="shareconfig">
+        </div>
+        <span class="close">×</span>
+    </div>
 
     <template id="login">
         <div>
@@ -189,253 +206,40 @@
         </div>
     </template>
 
+    <script src="../js/vuex_login.js"></script>
+    <script src="../js/left_public.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/share.js"></script>
+    <script src="../js/router.js"></script>
+    <script src="../js/share_animation.js"></script>
     <script>
-        //Vuex
-        //全局状态，用户登录与否
-        const store = new Vuex.Store({
-            //数据状态
-            state: {
-                user: ""
-            },
-            //修改数据状态的唯一入口
-            //同步修改
-            mutations: {
-                set_user(state, user) {
-                    state.user = user;
-                }
-            },
-            //支持异步调用
-            //将返回结果通过mutattons修改数据
-            actions: {
-                set_user(context) {
-                    axios.get('/userstatus')
-                        .then(function(response) {
-                            if (response.data) {
-                                context.commit("set_user", response.data)
-                            }
-                        })
-                        .catch(function(error) {
-                            console.log(error);
-                        });
-                }
-            }
-        })
-
-
-        //第一部分、用户公开的接口数据
-        const show = new Vue({
-            el: "#left",
-            data: {
-                linkdata: []
-            },
-            methods: {
-                getPublicData() {
-                    const that = this;
-                    axios.get("/interface/public").then((res) => {
-                        for (let i = res.data.length - 1; i >= 0; i--) {
-                            that.linkdata.push(res.data[i]);
-                        }
-                    }).catch(err => console.log(err));
-                }
-            }
-
-        })
-
-
-
-        //第二部分创建Vue实例
-        //爬虫抓取设置面板与预览面板
-        //classData保存诶个标签的数据。选择器这里需要根据用户选择的爬取深度来动态显示标签输入框的个数。使用v-for指令很好解决
-        //Vue监听输入框的数据。使用v-model指令很好解决
-        //但是v-for与v-model会造成每个条目绑定同一个数据，不符合要求
-        //这里我们将v-model绑定到数组项中,可以很好解决问题
-        //但是，新问题是当我选择了深度为2，同时标签1、2都输入数据之后，又选择深度为1，此时数组中数据却不能动态变化
-        //解决方法是:监听用户选择，删除数组中某一项
-        //我们这里由于业务逻辑的关系，可以直接控制数组长度即可。
-
-        const main = new Vue({
-            el: "#main",
-            store,
-            data: {
-                classNum: [1, 2, 3], //爬虫深度
-                charSet: ['utf-8', 'gbk'], //编码类别
-                charset: 'utf-8', //默认的网页编码
-                modeSet: ['plain', 'pagination'], //抓取模式:普通与分页
-                modeset: 'plain', //默认模式
-                startPage: "", //分页模式起始页
-                endPage: "", //分页模式尾页
-                classData: [], //保存每个输入标签的数据
-                classnum: 1, //用户选择的爬取深度,默认为1
-                idx: 1, //深度默认选择1
-                proxymodes: ['无代理', '西刺代理', '自定义代理'],
-                proxymode: '无代理',
-                inputproxy: '',
-                targetUrl: '',
-                targetTags: '',
-                icontent: '',
-                getdata: '',
-            },
-            methods: {
-                show() {
-                    let that = this;
-                    that.getdata = "请等待...";
-                    //解决数组数据绑定失效问题
-                    that.classData.length = that.classnum;
-                    axios.get('/result', {
-                            params: {
-                                targetUrl: that.targetUrl,
-                                targetTags: that.classData,
-                                icontent: that.icontent,
-                                classNum: that.classnum,
-                                mycharset: that.charset,
-                                mode: that.modeset,
-                                startPage: that.startPage,
-                                endPage: that.endPage,
-                                proxymode: that.proxymode,
-                                inputproxy: that.inputproxy
-                            }
-                        })
-                        .then(function(response) {
-                            that.getdata = response.data;
-                        })
-                        .catch(function(error) {
-                            that.getdata = error;
-                        });
-                },
-                createInterface() {
-                    let that = this;
-                    axios.get('/save', {
-                            params: {
-                                targetUrl: that.targetUrl,
-                                targetTags: that.classData,
-                                icontent: that.icontent,
-                                classNum: that.classnum,
-                                mycharset: that.charset,
-                                mode: that.modeset,
-                                startPage: that.startPage,
-                                endPage: that.endPage,
-                                proxymode: that.proxymode,
-                                inputproxy: that.inputproxy
-                            }
-                        })
-                        .then(function(response) {
-                            try {
-                                const page = window.open(response.data, '_blank');
-                                if (page.closed) {
-                                    alert("自动打开被阻止,请拷贝以下链接\n" + response.data);
-                                }
-                            } catch (e) {
-                                alert("接口地址为\n" + response.data);
-                            }
-                        })
-                        .catch(function(error) {
-                            console.log('接口响应错误', error);
-                        });
-                }
-            },
-            computed: {
-                user() {
-                    return this.$store.state.user;
-                }
-            }
-        })
-
-        // 路由集
-        const routes = [{
-            path: "/login",
-            component: {
-                template: '#login',
-                data() {
-                    return {
-                        login_user: "",
-                        login_password: "",
-                        login_confirm: false,
-                    }
-                },
-                methods: {
-                    tologin() {
-                        let that = this;
-                        axios.get('/login', {
-                                params: {
-                                    login_user: that.login_user,
-                                    login_password: that.login_password,
-                                }
-                            })
-                            .then(function(response) {
-                                if (response.data === "success") {
-                                    store.commit('set_user', that.login_user);
-                                } else {
-                                    that.login_confirm = true;
-                                }
-                            })
-                            .catch(function(error) {
-                                that.login_confirm = true;
-                            });
-                    }
-                }
-            }
-        }, {
-            path: "/register",
-            component: {
-                template: "#register",
-                data() {
-                    return {
-                        register_user: "",
-                        register_password: "",
-                        register_repeat_password: "",
-                        reg_confirm: false
-                    }
-                },
-                methods: {
-                    toregister() {
-                        let that = this;
-                        axios.get('/register', {
-                                params: {
-                                    register_user: that.register_user,
-                                    register_password: that.register_password,
-                                    register_repeat_password: that.register_repeat_password
-                                }
-                            })
-                            .then(function(response) {
-                                if (response.data === "success") {
-                                    store.commit('set_user', that.register_user);
-                                } else {
-                                    that.reg_confirm = true;
-                                }
-                            })
-                            .catch(function(error) {
-                                that.reg_confirm = true;
-                            });
-
-                    }
-                }
-            }
-        }]
-
-
-        const router = new VueRouter({
-            routes
-        })
-
-        //登录注册面板实例
-        const user_status = new Vue({
-            el: "#loginOrgister",
-            router,
-            store,
-            computed: {
-                user() {
-                    return this.$store.state.user
-                }
-            }
-        })
-
-
         window.onload = function() {
             //调用store中的actions中的函数
             //通过actions中的函数判断用户是否处于登录状态
             store.dispatch('set_user');
             show.getPublicData();
+
+            //初始化sharepanel数据
+            sharepanel.getshare(0);
+
+            //计算分享面板所在位置
+            computAttr();
         }
+
+        //分享面板处理按钮
+        const btns = document.getElementsByClassName("btns")[0];
+        btns.addEventListener('click', function(event) {
+            const target = event.target;
+            const btn = btns.getElementsByClassName("pagebtn");
+
+            for (let i = 0; i < btn.length; i++) {
+                if (btn[i] == target) {
+                    btn[i].className += " light"
+                } else {
+                    btn[i].className = "pagebtn";
+                }
+            }
+        })
     </script>
 </body>
 

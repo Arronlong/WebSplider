@@ -8,11 +8,13 @@ const collection = db.get('userSpliderResult')
 class Result {
     constructor(obj) {
         this.cid = obj.cid;
+        this.time = obj.time;
         this.result = obj.result;
     }
     save() {
         const obj = {
             cid: this.cid,
+            time: this.time,
             result: this.result
         }
         return collection.insert(obj)
