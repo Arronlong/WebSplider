@@ -18,8 +18,6 @@ const sharepanel = new Vue({
                 //获取到所有数据后，将第一个配置显示
                 that.getdetial(res.data.data[0]);
 
-                //处理sharepanel的UI
-
             })
         },
         getdetial(obj) {
@@ -58,6 +56,10 @@ const sharepanel = new Vue({
                         <td>选择器</td>
                         <td>${obj.targetTags}</td>
                     </tr>
+                    <tr>
+                        <td>输出格式</td>
+                        <td>${JSON.stringify(obj.icontent)}</td>
+                    <tr>
                     <tr>
                         <td>目标网址</td>
                         <td>${obj.targetUrl}</td>

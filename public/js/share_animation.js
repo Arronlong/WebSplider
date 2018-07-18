@@ -13,8 +13,11 @@ function computAttr() {
 
 
     const sharepanel = document.getElementById("sharepanel");
+    const shareconfig = document.getElementById("shareconfig");
     sharepanel.style.height = availHeight + 'px';
+    shareconfig.style.height = availHeight + 'px';
     sharepanel.style.overflowY = "scroll";
+    shareconfig.style.overflowY = "scroll";
 }
 
 //获取属性值

@@ -55,8 +55,8 @@
  
  #sharewrap #sharepanel {
      float: left;
-     width: 50%;
-     margin: 0px 5%;
+     width: 40%;
+     padding: 0 5%;
  }
  
  #sharewrap #sharepanel section {
@@ -68,6 +68,10 @@
      text-decoration: none;
  }
  
+ #sharewrap #sharepanel section div {
+     margin: 10px 0px;
+ }
+ 
  #sharewrap #sharepanel section:hover {
      background-color: rgba(0, 154, 97, 0.08);
  }
@@ -75,10 +79,17 @@
  #sharewrap #shareconfig {
      float: left;
      width: 40%;
+     padding: 0 5%;
+ }
+ 
+ #sharewrap #shareconfig table {
+     margin-bottom: 100px;
  }
  
  #sharewrap #shareconfig table tr td {
      padding: 10px 0px;
+     word-wrap: break-word;
+     word-break: break-all;
  }
  
  #sharewrap #shareconfig table tr:not(:first-child) td:first-child {
