@@ -231,9 +231,8 @@ ejs模板页面
 
 ### 2.前端调用示例
 
-由于跨域问题，所以系统为用户提供了JSONP的调用方式
+JSONP的调用方式
 ```
-调用示例
 <script>
     function callback(obj) {
         console.log(obj);
@@ -241,7 +240,7 @@ ejs模板页面
 </script>
 <script src="http://localhost:3000/interface?name=luckyhh&cid=1531671500898&cb=callback"></script>
 ```
-调用时，只需要在数据接口后添加 cb = 函数名 即可。
+调用时，只需要在数据接口后添加 &cb = 函数名 即可。
 
 ## 接口调用DEMO
 [WebSplider DEMO](http://demo.docmobile.cn)
