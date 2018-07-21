@@ -3,21 +3,24 @@ let panelWidth;
 
 function computAttr() {
     const availWidth = document.documentElement.offsetWidth;
-    const availHeight = document.documentElement.offsetHeight;
-    panelWidth = Math.floor(availWidth * 0.7);
-    const sharewrap = document.getElementById("sharewrap");
-    sharewrap.style.display = 'block';
-    sharewrap.style.width = panelWidth + 'px';
-    sharewrap.style.height = availHeight + 'px';
-    sharewrap.style.left = -panelWidth + 'px';
+
+    if (availWidth > 700) {
+        const availHeight = document.documentElement.offsetHeight;
+        panelWidth = Math.floor(availWidth * 0.7);
+        const sharewrap = document.getElementById("sharewrap");
+        sharewrap.style.display = 'block';
+        sharewrap.style.width = panelWidth + 'px';
+        sharewrap.style.height = availHeight + 'px';
+        sharewrap.style.left = -panelWidth + 'px';
 
 
-    const sharepanel = document.getElementById("sharepanel");
-    const shareconfig = document.getElementById("shareconfig");
-    sharepanel.style.height = availHeight + 'px';
-    shareconfig.style.height = availHeight + 'px';
-    sharepanel.style.overflowY = "scroll";
-    shareconfig.style.overflowY = "scroll";
+        const sharepanel = document.getElementById("sharepanel");
+        const shareconfig = document.getElementById("shareconfig");
+        sharepanel.style.height = availHeight + 'px';
+        shareconfig.style.height = availHeight + 'px';
+        sharepanel.style.overflowY = "scroll";
+        shareconfig.style.overflowY = "scroll";
+    }
 }
 
 //获取属性值

@@ -44,8 +44,11 @@ app.use(async function(ctx, next) {
             try {
                 const targetTags = body.targetTags.split(',');
                 const icontent = JSON.parse(body.icontent);
+                const time = new Date();
+                time.setHours(time.getHours() + 8);
+
                 ctx.response.body = {
-                    'time': new Date(),
+                    'time': time,
                     'data': await splider(body.targetUrl, targetTags, body.classNum, icontent, body.mycharset, body.mode, body.startPage, body.endPage, await getProxy(body))
                 };
             } catch (e) {
@@ -178,7 +181,10 @@ app.use(async function(ctx, next) {
                 ctx.response.body = "参数错误";
             } else {
                 const resultInfo = await Result.get({ cid: body.cid });
+                let resData;
+
                 const time = new Date();
+                time.setHours(time.getHours() + 8);
 
                 //判断是不是第一次请求
                 //数据库中保存数据更新时间，避免程序意外重启之后，定时任务失效
@@ -186,18 +192,18 @@ app.use(async function(ctx, next) {
                 if (resultInfo.length < 1) {
 
                     const result = await splider(confInfo[0].targetUrl, confInfo[0].targetTags, confInfo[0].classNum, confInfo[0].icontent, confInfo[0].mycharset, confInfo[0].mode, confInfo[0].startPage, confInfo[0].endPage, await getProxy(confInfo[0]));
-                    const item = new Result({ cid: body.cid, result, time: new Date() });
+                    const item = new Result({ cid: body.cid, result, time });
                     const myresult = await item.save();
 
                     //自动更新
                     autoUpdate(body.cid, confInfo[0]);
 
-                    ctx.response.body = {
+                    resData = {
                         'time': time,
                         'data': myresult.result
                     };
 
-                } else if (Math.floor(((time.getTime() - resultInfo[0].time.getTime()) / (24 * 3600 * 1000))) > 1) {
+                } else if (Math.floor(((time.getTime() - resultInfo[0].time.getTime()) / (24 * 3600 * 1000))) >= 1) {
 
                     const result = await splider(confInfo[0].targetUrl, confInfo[0].targetTags, confInfo[0].classNum, confInfo[0].icontent, confInfo[0].mycharset, confInfo[0].mode, confInfo[0].startPage, confInfo[0].endPage, await getProxy(confInfo[0]));
                     Result.update({ cid: body.cid }, { result, time });
@@ -205,16 +211,22 @@ app.use(async function(ctx, next) {
                     //自动更新
                     autoUpdate(body.cid, confInfo[0]);
 
-                    ctx.response.body = {
+                    resData = {
                         'time': time,
                         'data': result
                     };
-
                 } else {
-                    ctx.response.body = {
+                    resData = {
                         'time': resultInfo[0].time,
                         'data': resultInfo[0].result
                     }
+                }
+
+                //JSONP支持
+                if (body.cb) {
+                    ctx.response.body = `${body.cb}(${JSON.stringify(resData)})`;
+                } else {
+                    ctx.response.body = resData;
                 }
             }
         } else {

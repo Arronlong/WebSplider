@@ -51,6 +51,8 @@
      background-image: url(../imgs/bg2.jpeg);
      background-size: cover;
      margin-top: 10px;
+     word-wrap: break-word;
+     word-break: break-all;
  }
  
  #sharewrap #sharepanel {
@@ -88,8 +90,6 @@
  
  #sharewrap #shareconfig table tr td {
      padding: 10px 0px;
-     word-wrap: break-word;
-     word-break: break-all;
  }
  
  #sharewrap #shareconfig table tr:not(:first-child) td:first-child {
