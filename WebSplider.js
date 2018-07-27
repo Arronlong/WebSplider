@@ -8,12 +8,11 @@ const Result = require("./model/UserSpliderResult");
 const splider = require("./lib/splider");
 const getProxy = require("./lib/proxy");
 const itime = require("./lib/time");
+const formatResult = require("./lib/formatResult");
 const autoUpdate = require("./lib/setInterval");
 const CONFIG = require("./conf/session_conf");
 const HOSTNAME = require("./conf/conf").HOSTNAME;
 const app = new Koa();
-
-
 
 //设置静态目录
 app.use(serve(__dirname + "/public"));
@@ -37,24 +36,61 @@ app.use(async function(ctx, next) {
 app.use(async function(ctx, next) {
     if (ctx.request.path === "/result" && ctx.request.method === "GET") {
         const body = ctx.request.query;
-        //使用axios进行get传输数组。
+        //响应状态
+        let state = true;
+        //返回用户结果
+        let resResult = null;
+
+        //“输出格式”中时间涉及到自动定时任务，所以不用格式化后的时间itime
+        //这里这个时间可以用格式化后的时间itime，因为这部分是预览功能，不涉及到数据库保存数据与定时更新数据，
+        //但为了保持预览数据与生成数据接口中的数据的一致性，选择不使用格式化时间itime
+        const time = new Date();
+        time.setHours(time.getHours() + 8);
+
         if (!body.targetUrl || !body.targetTags || !body.icontent) {
-            ctx.response.body = "输入不完整";
+            state = false;
+            resResult = {
+                "state": state,
+                "time": time,
+                "data": "输入不完整"
+            };
         } else {
             try {
                 const targetTags = body.targetTags.split(',');
                 const icontent = JSON.parse(body.icontent);
-                const time = new Date();
-                time.setHours(time.getHours() + 8);
+                let spliderResult = '';
 
-                ctx.response.body = {
-                    'time': time,
-                    'data': await splider(body.targetUrl, targetTags, body.classNum, icontent, body.mycharset, body.mode, body.startPage, body.endPage, await getProxy(body))
-                };
+                try {
+                    spliderResult = await splider(body.targetUrl, targetTags, body.classNum, icontent, body.mycharset, body.mode, body.startPage, body.endPage, await getProxy(body));
+
+                    resResult = {
+                        "state": state,
+                        "time": time,
+                        "data": formatResult(spliderResult)
+                    };
+
+                } catch (e) {
+                    state = false;
+                    resResult = {
+                        "state": state,
+                        "time": time,
+                        "data": e.toString()
+                    }
+                    console.error(`${itime()} Web部分 爬虫结果获取失败，失败详情:${e}`);
+                }
+
             } catch (e) {
-                ctx.response.body = "JSON格式错误,错误详情:" + e;
+                state = false;
+                resResult = {
+                    "state": state,
+                    "time": time,
+                    "data": e.toString()
+                };
+                console.error(`${itime()} Web部分 JSON解析失败，失败详情:${e}`);
             }
         }
+        ctx.response.body = resResult;
+
     } else {
         await next();
     }
@@ -127,13 +163,13 @@ app.use(async function(ctx, next) {
     if (ctx.request.path === "/save" && ctx.request.method === "GET") {
         if (ctx.session.user) {
             const body = ctx.request.query;
+
             if (!body.targetUrl || !body.targetTags || !body.icontent) {
                 ctx.response.body = "保存失败,输入不完整";
             } else {
                 const targetTags = body.targetTags.split(',');
                 try {
                     const icontent = JSON.parse(body.icontent);
-                    const time = itime();
                     const cid = Date.now().toString();
                     const userconf = {
                         user: ctx.session.user,
@@ -142,7 +178,7 @@ app.use(async function(ctx, next) {
                         icontent: icontent,
                         classNum: body.classNum,
                         msg: '',
-                        time: `${time.year}-${time.month}-${time.date}  ${time.hour}:${time.minute}:${time.second}`,
+                        time: itime(),
                         cid,
                         public: '2',
                         url: `${HOSTNAME}/interface?name=${ctx.session.user}&cid=${cid}`,
@@ -154,10 +190,17 @@ app.use(async function(ctx, next) {
                         inputproxy: body.inputproxy
                     };
                     const conf = new UserSpliderConf(userconf);
-                    await conf.save();
-                    ctx.response.body = userconf.url;
+
+                    try {
+                        const saved = await conf.save();
+                        ctx.response.body = saved[0].url;
+                    } catch (e) {
+                        ctx.response.body = "配置保存错误\n" + e;
+                    }
+
+
                 } catch (e) {
-                    ctx.response.body = "出现错误\n" + e;
+                    ctx.response.body = "JSON解析错误\n" + e;
                 }
             }
         } else {
@@ -170,68 +213,100 @@ app.use(async function(ctx, next) {
 
 //数据接口生成
 //逻辑:根据URL中的昵称与id判断是否合法,根据数据库中是否有记录判断是否第一次请求，第一次请求使用爬虫，接下来的使用数据库存的数据
+// 用户请求数据接口，第一次请求时，直接调用爬虫，将结果返回给用户，并且将结果存到数据库，同时，启动自动更新函数。
+// 第二次请求时，请求数据接口的时间比数据库中存储的数据更新的时间大24小时，说明自动更新函数没有运行，则调用爬虫函数与自动更新函数。
+// 当请求数据接口的时间比数据库中存储的数据更新的时间小24小时，说明自动更新函数在运行，此时直接返回数据库中保存的数据
 app.use(async function(ctx, next) {
     if (ctx.request.path === "/interface" && ctx.request.method === "GET") {
         const body = ctx.request.query;
+        let state = true;
+        let resResult = null;
+        const time = new Date();
+        time.setHours(time.getHours() + 8);
+
         if (body.name && body.cid) {
             const confInfo = await UserSpliderConf.get(body.name, body.cid, false);
 
             //判断找到该用户
             if (confInfo.length < 1) {
-                ctx.response.body = "参数错误";
+                state = false;
+                resResult = {
+                    "state": state,
+                    "time": time,
+                    "data": "参数错误,未找到配置"
+                }
             } else {
                 const resultInfo = await Result.get({ cid: body.cid });
-                let resData;
+                let result = null;
 
-                const time = new Date();
-                time.setHours(time.getHours() + 8);
+                try {
+                    //判断是不是第一次请求
+                    //数据库中保存数据更新时间，避免程序意外重启之后，定时任务失效
+                    //数据每天更新一次，请求时的时间比数据库中时间大24个小时，说明数据没有更新
 
-                //判断是不是第一次请求
-                //数据库中保存数据更新时间，避免程序意外重启之后，定时任务失效
-                //数据每天更新一次，请求时的时间比数据库中时间大24个小时，说明数据没有更新
-                if (resultInfo.length < 1) {
+                    //长度小于1，说明是在生成数据接口
+                    if (resultInfo.length < 1) {
+                        result = formatResult(await splider(confInfo[0].targetUrl, confInfo[0].targetTags, confInfo[0].classNum, confInfo[0].icontent, confInfo[0].mycharset, confInfo[0].mode, confInfo[0].startPage, confInfo[0].endPage, await getProxy(confInfo[0])));
+                        const item = new Result({ cid: body.cid, result, time });
+                        const myresult = await item.save();
 
-                    const result = await splider(confInfo[0].targetUrl, confInfo[0].targetTags, confInfo[0].classNum, confInfo[0].icontent, confInfo[0].mycharset, confInfo[0].mode, confInfo[0].startPage, confInfo[0].endPage, await getProxy(confInfo[0]));
-                    const item = new Result({ cid: body.cid, result, time });
-                    const myresult = await item.save();
+                        //设置自动更新
+                        autoUpdate(body.cid, confInfo[0]);
 
-                    //自动更新
-                    autoUpdate(body.cid, confInfo[0]);
+                        resResult = {
+                            "state": state,
+                            "time": time,
+                            "data": myresult.result
+                        };
 
-                    resData = {
-                        'time': time,
-                        'data': myresult.result
-                    };
 
-                } else if (Math.floor(((time.getTime() - resultInfo[0].time.getTime()) / (24 * 3600 * 1000))) >= 1) {
+                    } else if (Math.floor(((time.getTime() - resultInfo[0].time.getTime()) / (1000 * 60))) >= 1) {
+                        //如果当前时间大于存储时间超过12个小时，则说明应用重启了，此时更新一波数据
+                        result = formatResult(await splider(confInfo[0].targetUrl, confInfo[0].targetTags, confInfo[0].classNum, confInfo[0].icontent, confInfo[0].mycharset, confInfo[0].mode, confInfo[0].startPage, confInfo[0].endPage, await getProxy(confInfo[0])));
 
-                    const result = await splider(confInfo[0].targetUrl, confInfo[0].targetTags, confInfo[0].classNum, confInfo[0].icontent, confInfo[0].mycharset, confInfo[0].mode, confInfo[0].startPage, confInfo[0].endPage, await getProxy(confInfo[0]));
-                    Result.update({ cid: body.cid }, { result, time });
+                        Result.update({ cid: body.cid }, { result, time });
 
-                    //自动更新
-                    autoUpdate(body.cid, confInfo[0]);
+                        //设置自动更新
+                        autoUpdate(body.cid, confInfo[0]);
 
-                    resData = {
-                        'time': time,
-                        'data': result
-                    };
-                } else {
-                    resData = {
-                        'time': resultInfo[0].time,
-                        'data': resultInfo[0].result
+                        resResult = {
+                            "state": state,
+                            "time": time,
+                            "data": result
+                        };
+
+                    } else {
+                        //说明不是在生成数据接口，且数据更新时间小于12小时,且定时任务正确执行
+                        resResult = {
+                            "state": state,
+                            "time": resultInfo[0].time,
+                            "data": resultInfo[0].result
+                        }
                     }
-                }
-
-                //JSONP支持
-                if (body.cb) {
-                    ctx.response.body = `${body.cb}(${JSON.stringify(resData)})`;
-                } else {
-                    ctx.response.body = resData;
+                } catch (e) {
+                    state = false;
+                    resResult = {
+                        "state": state,
+                        "time": time,
+                        "data": `爬虫获取数据失败，失败详情:${e}`
+                    }
                 }
             }
         } else {
-            ctx.response.body = "参数错误";
+            state = false;
+            resResult = {
+                "state": state,
+                "time": time,
+                "data": `参数错误`
+            }
         }
+
+        //JSONP支持
+        if (body.cb) {
+            resResult = `${body.cb}(${JSON.stringify(resResult)})`;
+        }
+
+        ctx.response.body = resResult;
     } else {
         await next();
     }

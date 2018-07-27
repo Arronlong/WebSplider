@@ -221,27 +221,29 @@
             store.dispatch('set_user');
             show.getPublicData();
 
-            //初始化sharepanel数据
-            sharepanel.getshare(0);
+            if (document.documentElement.clientWidth > 700) {
+                //初始化sharepanel数据
+                sharepanel.getshare(0);
 
-            //计算分享面板所在位置
-            computAttr();
-        }
+                //计算分享面板所在位置
+                computAttr();
 
-        //分享面板处理按钮
-        const btns = document.getElementsByClassName("btns")[0];
-        btns.addEventListener('click', function(event) {
-            const target = event.target;
-            const btn = btns.getElementsByClassName("pagebtn");
+                //分享面板处理按钮
+                const btns = document.getElementsByClassName("btns")[0];
+                btns.addEventListener('click', function(event) {
+                    const target = event.target;
+                    const btn = btns.getElementsByClassName("pagebtn");
 
-            for (let i = 0; i < btn.length; i++) {
-                if (btn[i] == target) {
-                    btn[i].className += " light"
-                } else {
-                    btn[i].className = "pagebtn";
-                }
+                    for (let i = 0; i < btn.length; i++) {
+                        if (btn[i] == target) {
+                            btn[i].className += " light"
+                        } else {
+                            btn[i].className = "pagebtn";
+                        }
+                    }
+                })
             }
-        })
+        }
     </script>
 </body>
 

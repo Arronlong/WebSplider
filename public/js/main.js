@@ -29,33 +29,42 @@ const main = new Vue({
         targetTags: '',
         icontent: '',
         getdata: '',
+        state: true
     },
     methods: {
         show() {
             let that = this;
-            that.getdata = "数据获取中请等待...";
-            //解决数组数据绑定失效问题
-            that.classData.length = that.classnum;
-            axios.get('/result', {
-                    params: {
-                        targetUrl: that.targetUrl,
-                        targetTags: '' + that.classData,
-                        icontent: that.icontent,
-                        classNum: that.classnum,
-                        mycharset: that.charset,
-                        mode: that.modeset,
-                        startPage: that.startPage,
-                        endPage: that.endPage,
-                        proxymode: that.proxymode,
-                        inputproxy: that.inputproxy
-                    }
-                })
-                .then(function(response) {
-                    that.getdata = response.data;
-                })
-                .catch(function(error) {
-                    that.getdata = error;
-                });
+            if (that.state) {
+                that.state = false;
+                that.getdata = "数据获取中,请等待...";
+                //解决数组数据绑定失效问题
+                that.classData.length = that.classnum;
+                axios.get('/result', {
+                        params: {
+                            targetUrl: that.targetUrl,
+                            targetTags: '' + that.classData,
+                            icontent: that.icontent,
+                            classNum: that.classnum,
+                            mycharset: that.charset,
+                            mode: that.modeset,
+                            startPage: that.startPage,
+                            endPage: that.endPage,
+                            proxymode: that.proxymode,
+                            inputproxy: that.inputproxy
+                        }
+                    })
+                    .then(function(response) {
+                        that.getdata = response.data;
+                        that.state = true;
+                    })
+                    .catch(function(error) {
+                        that.getdata = error;
+                        that.state = true;
+                    });
+            } else {
+                that.getdata = "不要着急，请耐心等待...";
+            }
+
         },
         createInterface() {
             let that = this;
@@ -76,9 +85,6 @@ const main = new Vue({
                 .then(function(response) {
                     try {
                         const page = window.open(response.data, '_blank');
-                        if (page.closed) {
-                            alert("自动打开被阻止,请拷贝以下链接\n" + response.data);
-                        }
                     } catch (e) {
                         alert("接口地址为\n" + response.data);
                     }
