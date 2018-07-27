@@ -260,7 +260,7 @@ app.use(async function(ctx, next) {
                         };
 
 
-                    } else if (Math.floor(((time.getTime() - resultInfo[0].time.getTime()) / (1000 * 60))) >= 1) {
+                    } else if (Math.floor(((time.getTime() - resultInfo[0].time.getTime()) / (1000 * 60 * 60 * 24))) >= 1) {
                         //如果当前时间大于存储时间超过12个小时，则说明应用重启了，此时更新一波数据
                         result = formatResult(await splider(confInfo[0].targetUrl, confInfo[0].targetTags, confInfo[0].classNum, confInfo[0].icontent, confInfo[0].mycharset, confInfo[0].mode, confInfo[0].startPage, confInfo[0].endPage, await getProxy(confInfo[0])));
 
