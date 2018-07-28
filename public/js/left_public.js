@@ -8,7 +8,6 @@
                 getPublicData() {
                     const that = this;
                     axios.get("/interface/public").then((res) => {
-                        console.log(res.data);
                         that.linkdata = res.data;
                     }).catch(err => console.log(err));
                 }

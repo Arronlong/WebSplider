@@ -18,8 +18,8 @@ const store = new Vuex.Store({
         set_user(context) {
             axios.get('/userstatus')
                 .then(function(response) {
-                    if (response.data) {
-                        context.commit("set_user", response.data)
+                    if (response.data.state) {
+                        context.commit("set_user", response.data.data)
                     }
                 })
                 .catch(function(error) {

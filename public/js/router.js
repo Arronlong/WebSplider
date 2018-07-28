@@ -20,7 +20,7 @@ const routes = [{
                         }
                     })
                     .then(function(response) {
-                        if (response.data === "success") {
+                        if (response.data.state) {
                             store.commit('set_user', that.login_user);
                         } else {
                             that.login_confirm = true;
@@ -55,7 +55,7 @@ const routes = [{
                         }
                     })
                     .then(function(response) {
-                        if (response.data === "success") {
+                        if (response.data.state) {
                             store.commit('set_user', that.register_user);
                         } else {
                             that.reg_confirm = true;

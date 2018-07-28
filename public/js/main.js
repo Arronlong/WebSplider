@@ -84,9 +84,16 @@ const main = new Vue({
                 })
                 .then(function(response) {
                     try {
-                        const page = window.open(response.data, '_blank');
+                        if (response.data.state) {
+                            const page = window.open(response.data.data, '_blank');
+                            if (page.closed) {
+                                alert("接口地址为\n" + response.data.data);
+                            }
+                        } else {
+                            alert(response.data.data);
+                        }
                     } catch (e) {
-                        alert("接口地址为\n" + response.data);
+                        alert("接口地址为\n" + response.data.data);
                     }
                 })
                 .catch(function(error) {

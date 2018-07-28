@@ -53,6 +53,7 @@
      margin-top: 10px;
      word-wrap: break-word;
      word-break: break-all;
+     z-index: 100;
  }
  
  #sharewrap #sharepanel {
@@ -115,15 +116,14 @@
  
  #sharewrap .close {
      position: absolute;
-     right: -10px;
+     right: -20px;
      top: -10px;
      text-align: center;
      font-size: 2em;
      display: block;
      height: 30px;
      line-height: 30px;
-     width: 30px;
-     border-radius: 15px;
+     width: 50px;
      cursor: pointer;
      background-color: red;
  }
@@ -165,29 +165,48 @@
  
  #makeurl {
      display: block;
-     width: 100px;
-     height: 100px;
-     border-radius: 50px;
+     width: 200px;
+     height: 200px;
      position: fixed;
-     right: 10px;
+     right: 0px;
      bottom: 10px;
-     background-color: antiquewhite;
      font-size: 80%;
      text-align: center;
-     line-height: 100px;
-     outline: none;
+     background-image: url("../imgs/splider.jpg");
+     background-size: cover;
  }
  
- #makeurl:hover {
-     background-color: aqua;
-     cursor: pointer;
-     transition: 2s;
+ #makeurl .shareBtn {
+     display: block;
+     width: 50px;
+     height: 50px;
+     border-radius: 100%;
+     background-color: black;
+     background: radial-gradient(circle at 100px 100px, #5cabff, #000);
+     position: absolute;
+     top: 100px;
+     left: 20px;
  }
  
  #loginOrgister {
      width: 20%;
      float: left;
      margin-left: 5%;
+     z-index: 100;
+ }
+ 
+ .splider_img {
+     position: absolute;
+     right: 0px;
+     top: 200px;
+     width: 20%;
+ }
+ 
+ .forkme {
+     position: absolute;
+     top: 0;
+     right: 0;
+     border: 0;
  }
  
  @media all and (max-width:700px) {
@@ -205,4 +224,64 @@
          margin: 30px auto;
          float: none;
      }
+ }
+ /* 小球部分 */
+ 
+ @-webkit-keyframes move-eye-skew {
+     0% {
+         -webkit-transform: none;
+     }
+     20% {
+         -webkit-transform: translateX(-8px) translateY(8px) skewX(15deg) skewY(-10deg) scale(0.95);
+     }
+     25%,
+     44% {
+         -webkit-transform: none;
+     }
+     50%,
+     60% {
+         -webkit-transform: translateX(8px) translateY(-8px) skewX(5deg) skewY(2deg) scaleX(0.95);
+     }
+     66%,
+     100% {
+         -webkit-transform: none;
+     }
+ }
+ 
+ .iris {
+     width: 20%;
+     height: 20%;
+     border-radius: 50%;
+     background: -webkit-radial-gradient(50% 50%, circle cover, #208ab4 0%, #6fbfff 30%, #4381b2 100%);
+     -webkit-transform: translateX(68px) translateY(-60px) skewX(15deg) skewY(2deg);
+     position: absolute;
+     -webkit-animation: move-eye-skew 5s ease-out infinite;
+     cursor: pointer;
+     top: 55%;
+     left: 5%;
+     color: white;
+     text-align: center;
+ }
+ 
+ .iris:before {
+     content: "";
+     display: block;
+     position: absolute;
+     width: 37.5%;
+     height: 37.5%;
+     border-radius: 50%;
+     top: 31.25%;
+     left: 31.25%;
+ }
+ 
+ .iris:after {
+     content: "";
+     display: block;
+     position: absolute;
+     width: 31.25%;
+     height: 31.25%;
+     border-radius: 50%;
+     top: 18.75%;
+     left: 18.75%;
+     background: rgba(255, 255, 255, 0.2);
  }

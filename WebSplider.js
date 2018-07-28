@@ -104,12 +104,21 @@ app.use(async function(ctx, next) {
             const user = await User.get(body.login_user, true);
             if (user.length > 0 && (body.login_password === user[0].password)) {
                 ctx.session.user = body.login_user;
-                ctx.response.body = "success";
+                ctx.response.body = {
+                    state: true,
+                    data: "登录成功"
+                };
             } else {
-                ctx.response.body = "验证失败";
+                ctx.response.body = {
+                    state: false,
+                    data: "验证失败"
+                };
             }
         } else {
-            ctx.response.body = "输入不完整";
+            ctx.response.body = {
+                state: false,
+                data: "输入不完整"
+            };
         }
     } else {
         await next();
@@ -123,7 +132,15 @@ app.use(async function(ctx, next) {
         if (body.register_user && body.register_password && body.register_repeat_password && (body.register_password === body.register_repeat_password)) {
             const user = await User.get(body.register_user, false);
             if (user.length > 0) {
-                ctx.response.body = "用户名已存在"
+                ctx.response.body = {
+                    state: false,
+                    data: "用户名已存在"
+                }
+            } else if (body.register_password.toString().length < 6) {
+                ctx.response.body = {
+                    state: false,
+                    data: "密码长度不小于6位"
+                }
             } else {
                 const user = {
                     name: body.register_user,
@@ -133,10 +150,16 @@ app.use(async function(ctx, next) {
                 const iuser = new User(user);
                 await iuser.save();
                 ctx.session.user = user.name;
-                ctx.response.body = "success";
+                ctx.response.body = {
+                    state: true,
+                    data: "注册成功"
+                };
             }
         } else {
-            ctx.response.body = "输入有误";
+            ctx.response.body = {
+                state: true,
+                data: "输入有误"
+            };
         }
     } else {
         await next();
@@ -144,14 +167,21 @@ app.use(async function(ctx, next) {
 })
 
 //用户登录状态查询
+//客户登录状态由cookie维持，所以可以使用这种方法
 app.use(async function(ctx, next) {
     if (ctx.request.path === "/userstatus" && ctx.request.method === "GET") {
         //如果用户登录了，可以查看登录状态
         //这个接口用于维持客户端登录状态
         if (ctx.session.user) {
-            ctx.response.body = ctx.session.user;
+            ctx.response.body = {
+                state: true,
+                data: ctx.session.user
+            };
         } else {
-            ctx.response.body = false;
+            ctx.response.body = {
+                state: false,
+                data: "用户未登录"
+            };
         }
     } else {
         await next();
@@ -165,7 +195,10 @@ app.use(async function(ctx, next) {
             const body = ctx.request.query;
 
             if (!body.targetUrl || !body.targetTags || !body.icontent) {
-                ctx.response.body = "保存失败,输入不完整";
+                ctx.response.body = {
+                    state: false,
+                    data: "保存失败,输入不完整"
+                };
             } else {
                 const targetTags = body.targetTags.split(',');
                 try {
@@ -193,18 +226,30 @@ app.use(async function(ctx, next) {
 
                     try {
                         const saved = await conf.save();
-                        ctx.response.body = saved[0].url;
+                        ctx.response.body = {
+                            state: true,
+                            data: saved[0].url
+                        };
                     } catch (e) {
-                        ctx.response.body = "配置保存错误\n" + e;
+                        ctx.response.body = {
+                            state: false,
+                            data: "配置保存错误\n" + e
+                        };
                     }
 
 
                 } catch (e) {
-                    ctx.response.body = "JSON解析错误\n" + e;
+                    ctx.response.body = {
+                        state: false,
+                        data: "JSON解析错误\n" + e
+                    };
                 }
             }
         } else {
-            ctx.response.body = "用户未登录";
+            ctx.response.body = {
+                state: false,
+                data: "用户未登录"
+            };
         }
     } else {
         await next();
