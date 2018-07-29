@@ -40,8 +40,9 @@ function computePosition() {
 
 
 //分享面板动效
-// const moreshare = document.getElementsByClassName("moreshare")[0];
 const sharewrap = document.getElementById("sharewrap");
+const close = document.getElementsByClassName("close")[0];
+const arrow = close.getElementsByTagName('i')[0];
 
 function animation() {
     let targetPosition;
@@ -58,8 +59,13 @@ function animation() {
         sharewrap.style.left = parseInt(getStyle(sharewrap, 'left')) + speed + 'px';
         if (targetPosition == parseInt(getStyle(sharewrap, 'left'))) {
             clearInterval(timer);
+            if (parseInt(getStyle(sharewrap, 'left')) < 0) {
+                arrow.className = "iconfont icon-jiantou-you";
+            } else {
+                arrow.className = "iconfont icon-jiantou-zuo";
+            }
         }
     }, 16);
 }
-// moreshare.addEventListener('click', animation);
-document.getElementsByClassName("close")[0].addEventListener('click', animation);
+
+close.addEventListener('click', animation);
