@@ -11,6 +11,7 @@ const itime = require("./lib/time");
 const formatResult = require("./lib/formatResult");
 const autoUpdate = require("./lib/setInterval");
 const CONFIG = require("./conf/session_conf");
+const verify = require("./lib/verification");
 const HOSTNAME = require("./conf/conf").HOSTNAME;
 const app = new Koa();
 
@@ -48,41 +49,45 @@ app.use(async function(ctx, next) {
         time.setHours(time.getHours() + 8);
 
         if (!body.targetUrl || !body.targetTags || !body.icontent) {
-            state = false;
             resResult = {
-                "state": state,
+                "state": false,
                 "time": time,
                 "data": "输入不完整"
             };
         } else {
             try {
-                const targetTags = body.targetTags.split(',');
                 const icontent = JSON.parse(body.icontent);
+                const targetTags = body.targetTags.split(',');
                 let spliderResult = '';
 
-                try {
-                    spliderResult = await splider(body.targetUrl, targetTags, body.classNum, icontent, body.mycharset, body.mode, body.startPage, body.endPage, await getProxy(body));
+                //判断用户输入是否合法
+                if (targetTags.every(str => verify(str)) && Object.values(icontent).every(str => verify(str))) {
+                    try {
+                        spliderResult = await splider(body.targetUrl, targetTags, body.classNum, icontent, body.mycharset, body.mode, body.startPage, body.endPage, await getProxy(body));
+                        resResult = {
+                            "state": true,
+                            "time": time,
+                            "data": formatResult(spliderResult)
+                        };
 
-                    resResult = {
-                        "state": state,
-                        "time": time,
-                        "data": formatResult(spliderResult)
-                    };
-
-                } catch (e) {
-                    state = false;
-                    resResult = {
-                        "state": state,
-                        "time": time,
-                        "data": e.toString()
+                    } catch (e) {
+                        resResult = {
+                            "state": false,
+                            "time": time,
+                            "data": e.toString()
+                        }
+                        console.error(`${itime()} Web部分 爬虫结果获取失败，失败详情:${e}`);
                     }
-                    console.error(`${itime()} Web部分 爬虫结果获取失败，失败详情:${e}`);
+                } else {
+                    resResult = {
+                        "state": false,
+                        "time": time,
+                        "data": "输入不合法"
+                    }
                 }
-
             } catch (e) {
-                state = false;
                 resResult = {
-                    "state": state,
+                    "state": false,
                     "time": time,
                     "data": e.toString()
                 };
@@ -200,43 +205,50 @@ app.use(async function(ctx, next) {
                     data: "保存失败,输入不完整"
                 };
             } else {
-                const targetTags = body.targetTags.split(',');
                 try {
+                    const targetTags = body.targetTags.split(',');
                     const icontent = JSON.parse(body.icontent);
-                    const cid = Date.now().toString();
-                    const userconf = {
-                        user: ctx.session.user,
-                        targetUrl: body.targetUrl,
-                        targetTags: targetTags,
-                        icontent: icontent,
-                        classNum: body.classNum,
-                        msg: '',
-                        time: itime(),
-                        cid,
-                        public: '2',
-                        url: `${HOSTNAME}/interface?name=${ctx.session.user}&cid=${cid}`,
-                        mycharset: body.mycharset,
-                        mode: body.mode,
-                        startPage: body.startPage,
-                        endPage: body.endPage,
-                        proxymode: body.proxymode,
-                        inputproxy: body.inputproxy
-                    };
-                    const conf = new UserSpliderConf(userconf);
 
-                    try {
-                        const saved = await conf.save();
-                        ctx.response.body = {
-                            state: true,
-                            data: saved[0].url
+                    if (targetTags.every(sre => verify(str)) && Object.values(icontent).every(str => verify(str))) {
+                        const cid = Date.now().toString();
+                        const userconf = {
+                            user: ctx.session.user,
+                            targetUrl: body.targetUrl,
+                            targetTags: targetTags,
+                            icontent: icontent,
+                            classNum: body.classNum,
+                            msg: '',
+                            time: itime(),
+                            cid,
+                            public: '2',
+                            url: `${HOSTNAME}/interface?name=${ctx.session.user}&cid=${cid}`,
+                            mycharset: body.mycharset,
+                            mode: body.mode,
+                            startPage: body.startPage,
+                            endPage: body.endPage,
+                            proxymode: body.proxymode,
+                            inputproxy: body.inputproxy
                         };
-                    } catch (e) {
+                        const conf = new UserSpliderConf(userconf);
+
+                        try {
+                            const saved = await conf.save();
+                            ctx.response.body = {
+                                state: true,
+                                data: saved[0].url
+                            };
+                        } catch (e) {
+                            ctx.response.body = {
+                                state: false,
+                                data: "配置保存错误\n" + e
+                            };
+                        }
+                    } else {
                         ctx.response.body = {
                             state: false,
-                            data: "配置保存错误\n" + e
+                            data: "输入不合法\n" + e
                         };
                     }
-
 
                 } catch (e) {
                     ctx.response.body = {

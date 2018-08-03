@@ -7,6 +7,8 @@
 
 2、当你想知道自己追的剧，小说等更新没有，你可以抓取指定网站的数据(比如说视频级数)，然后在后台请求数据接口，将数据保存到你的数据库中，设置一个定时器，定时请求数据接口，将获得的数据与数据库数据对比即可。然后弄个邮件发送，监控到数据变化时，给你发送邮件。
 
+3、当你想做个聚合网站或者聚合app时，你可以利用WebSplider爬取各大站点的数据，然后调用API，构造数据到自己的APP中(今日头条就干的这种事情)。
+
 ...
 
 基于此，WebSplider诞生了。
@@ -107,31 +109,56 @@ CNode的分页网址
 
 ### 6.选择器
 
-选择器用来筛选数据。填写需要用户具有基本的前端知识。
+选择器用来指出数据所在的位置，配合'输出结果定制'即可获得目标数据。填写需要用户具有基本的前端知识。
 
-当抓取深度为1，则只需填写1级选择器，填写数据所在标签即可
+这里为了描述方便，将标签选择器分为两种，一种是a标签选择器与数据标签选择器。(当然，如果你想要的数据在a标签中，那么a标签选择器就是数据标签选择器)
 
-当抓取深度为2，则一级选择器中填写到达第二层页面的a标签选择器，二级选择器填写数据所在标签即可。
+原理图:
+![原理](https://www.docmobile.cn/upload/image/plain/1017939766378893312.png)
 
-当抓取深度为3，则一级选择器中填写到达第二层页面的a标签选择器，二级选择器中填写到达第三层页面的a标签选择器，三级选择器填写数据所在标签即可。
+> 当抓取深度为1，则一级选择器中填写数据选择器即可。
 
-例如:
+> 当抓取深度为2，则一级选择器中填写到达第二层页面的a标签选择器，二级选择器填写数据标签选择器。
 
-```$(".topic_title a")```
+> 当抓取深度为3，则一级选择器中填写到达第二层页面的a标签选择器，二级选择器中填写到达第三层页面的a标签选择器，三级选择器填写数据选择器即可。
 
-指的是目标页面中所有类名为topic_title的元素中的a元素
+填写示例:
+
+深度为2
+
+一级选择器:`$(".topic_title a")`
+
+二级选择器:`$(".topic .content")`
 
 
-```$(".topic_title").find('.content')```
+`$(".topic_title a")`是指目标页面中所有类名为topic_title的元素中的a元素
 
-指的是目标页面中类名为topic_title的元素下的类名为content的子孙元素
+`$(".topic .content")`指的是目标页面中类名为topic的元素下的类名为content的子孙元素
 
+填写了两级选择器，说明目标数据在当前页面(即配置页面'目标网址'填写的网址)的下一层，则一级选择器需要指出到达下一层页面的a标签选择器。二级选择器填写的是下一层页面中的数据标签选择器
+
+
+填写同样支持调用一些内置函数来辅助进行数据定位
+
+如:
+
+```
+$(".topic").find('.content')
+
+$(".topic").children('.content')
+
+$(".topic").next().children('.content')
+
+$(".topic").children('.content').next().find('.artical')
+```
 
 更多选择器填写规则，参考[cheerio](https://www.npmjs.com/package/cheerio)。
 
 ### 7.输出结果定制。 
 
-输出结果定制指的是输出哪些结果
+输出结果定制指的是输出哪些结果。
+
+由标签选择器指出数据所在的位置后，还需要进一步使用标签选择器和属性选择器来获得数据。
 
 这里需要写成JSON格式，参考写法如下：
 
@@ -142,12 +169,91 @@ CNode的分页网址
 }
 ```
 
-其中，键为name的值，筛选出的元素下的类名为c-9的元素下的类名ml-20下的a元素中的文本
+键部分可以随意指定，值部分填写需要一定的规则。
 
-键为age的值，筛选出的元素下的类名为c-9的元素下一个元素的文本内容
+**$element**是指'选择器'中填写的数据标签选择器。(结合'选择器'给出的示例，$element指的是$(".topic .content")）
+
+键为name的值指 '选择器'筛选出的元素下的类名为c-9的元素下的类名ml-20下的a元素中的文本
+
+键为age的值指 '选择器'筛选出的元素下的类名为c-9的元素下一个元素的文本内容
+ 
+
+***
+
+值得注意的是，当你需要的数据种类只有1种，你完全可以在'选择器'中填写标签选择器时，直接将标签定位到目标元素，在'输出结果定制'中，填写属性选择器即可。
+
+但往往我们需要的数据种类不止一种，所以在填写'选择器'部分时，需要填写的数据标签选择器要将所有需要的数据包裹在内，所以甚至可以填写$("body")这样的数据选择器。在填写"输出结果定制"的值部分，需要填写一些选择器指明数据详细位置，最后使用属性选择器即可获得数据。
+
+同样结合上文给出的示例，
+
+如果我要想获得'name'值这一类数据，
+
+那么'选择器'可以这样写
+
+一级选择器:`$(".topic_title a")`
+
+二级选择器:`$(".topic .content .c-9 .ml-20 a")`
+
+'输出结果定制'可以这样写
+```
+{
+    "name":"$element.text()"
+}
+```
+
+或者
+
+'选择器':
+
+一级选择器:`$(".topic_title a")`
+
+二级选择器:`$(".topic").find('.content .c-9 .ml-20 a')`
+
+'输出结果定制':
+```
+{
+    "name":"$element.text()"
+}
+```
+
+或者
+
+'选择器':
+
+一级选择器:`$(".topic_title a")`
+
+二级选择器:`$(".topic")`
+
+'输出结果定制':
+```
+{
+    "name":"$element.find('.content .c-9 .ml-20 a').text()",
+}
+```
+
+或者
+
+'选择器':
+
+一级选择器:`$(".topic_title a")`
+
+二级选择器:`$("body")`
+
+'输出结果定制':
+```
+{
+    "name":"$element.find('.topic .content .c-9 .ml-20 a').text()"
+}
+```
 
 
-键随意指定，值中写法需要参考cheerio的属性部分。$element代表的是选择器选择出的元素。
+常用的属性选择器有text(),html(),attr()这三种
+
+text()选择的是目标元素中的文本内容
+
+html()选择的是目标元素的HTML代码
+
+attr()选择的是目标元素标签中的某个属性值。需要填写参数，比如$element.attr('url')指的是获取目标元素标签中的url属性值
 
 
 ### 8.代理模式
@@ -159,19 +265,47 @@ CNode的分页网址
 西刺代理模式使用[西刺代理](http://www.xicidaili.com/)可用的代理地址发出请求。[HttpProxy](http://httpproxy.docmobile.cn)提供API支持
 
 自定义代理模式需要用户自己填写可用代理。
-输入格式如下:
-```['http://111.111.111.111:1111','http://111.111.111.111:1111']```
 
-注:自定义代理地址填写有误的话，系统默认使用无代理模式
+输入格式如下:
+```
+['http://111.111.111.111:1111','http://111.111.111.111:1111']
+```
+
+注:
+
+(1)自定义代理地址填写不符合正常IP地址的话，系统默认使用无代理模式。
+
+(2)西刺代理响应速度略慢，因为首先HttpProxy要检测可用的代理地址，其次代理质量不能保证。当使用西刺代理之后响应失败，请重新提交。
 
 
 ### 9.结果预览
 
-返回结果中，time值为数据最后一次的更新时间。data值为抓取结果。
+返回结果中
+
+state表示抓取状态，值为true或者false 
+
+time值为数据的更新时间。
+
+data值为抓取结果，格式为数组。
+
 
 ### 10.生成数据接口
 
 数据接口只在用户登录情况下生成。
+
+### 11.查看分享
+WebSplider左边栏有近期用户分享的API，贴左边屏幕有个icon，点击会滑动出所有用户分享的API。
+
+界面为了美观，隐藏了滚动条，在页面中，所有被遮挡的部分均可以滚动。
+
+### 12.数据自动更新机制
+(1)自API生成起，程序每24小时更新一次数据，time值为更新数据的时间
+
+(2)当应用意外崩溃重启，自动更新失效。当请求该API时，程序发现请求时间比数据库保存的数据更新时间大24小时，会调用爬虫程序并响应结果，time值为API请求的时间，此时响应时间稍长，同时程序将重新启动自动更新机制，自动更新该API数据。
+
+(3)当自动更新机制更新某个API数据时，如果连续5次请求失败，说明目标网站可能闭站，改版，或者封了我服务器的IP，程序将不会再更新该API数据。当用户在数据更新时间(即time值)的24小时后调用API，会调用爬虫程序抓取数据进行响应，此时程序将重新启动定时任务，自动更新数据，如果5次请求失败，就不会再更新数据，在更新时间的24小时后，用户再次调用API，程序调用爬虫程序抓取数据进行响应。。。当用户调用API时，根据API中的state状态很容易判断该API是否失效，失效的情况下，用户一般将不会再调用该API。该API事实废弃
+
+(4)不管数据更新成功或者失败，time值都会更新。
 
 ## 数据接口调用示例
 
@@ -185,9 +319,13 @@ const router = express.Router();
 
 router.get('/douban/movie', function(req, res, next) {
     axios.get("http://splider.docmobile.cn/interface?name=luckyhh&cid=1529046160624").then(ires => {
-        res.render('douban', { title: 'douban', content: ires.data.data });
+        if(ires.data.state){
+            res.render('douban', { title: 'douban', content: ires.data.data });
+        }else{
+            res.send("请求失败");
+        }
     }).catch(err => {
-        console.log(err);
+        console.error(err);
     });
 });
 
@@ -195,35 +333,33 @@ ejs模板页面
 <ul>
         <%
                 for(let i = 0 ; i < content.length ; i++){
-                    for(let j = 0 ; j < content[i].length ; j++){
         %>
             <li>
                 <h3>
-                    <%=content[i][j].name%>
+                    <%=content[i].name%>
                 </h3>
-                <img src="<%=content[i][j].image_src%>" alt="<%=content[i][j].name%>"><br>
+                <img src="<%=content[i].image_src%>" alt="<%=content[i].name%>"><br>
                 <span>导演:
-                    <%=content[i][j].director%>
+                    <%=content[i].director%>
                 </span>
                 <br>
                 <span>编剧:
-                    <%=content[i][j].screenwriter%>
+                    <%=content[i].screenwriter%>
                 </span>
                 <br>
                 <span>主演:
-                    <%=content[i][j].starring%>
+                    <%=content[i].starring%>
                 </span>
                 <br>
                 <span>
-                    得分:<%=content[i][j].score%>
+                    得分:<%=content[i].score%>
                 </span>
                 <br>
                 <p>简介:
-                    <%=content[i][j].brief%>
+                    <%=content[i].brief%>
                 </p>
             </li>
         <%
-                    }
                 }
         %>
     </ul>
@@ -235,7 +371,11 @@ JSONP的调用方式
 ```
 <script>
     function callback(obj) {
-        console.log(obj);
+        if(obj.data.state){
+            //obj.data.data数据处理
+        }else{
+            console.error("请求失败")
+        }
     }
 </script>
 <script src="http://localhost:3000/interface?name=luckyhh&cid=1531671500898&cb=callback"></script>
@@ -251,6 +391,17 @@ JSONP的调用方式
 > * [WebSplider参考配置](https://docmobile.cn/artical_detiail/luckyhh/1528369921460)
 
 > * [基于WebSplider的在线新闻模块开发](https://www.docmobile.cn/artical_detiail/luckyhh/1528989508215)
+
+
+## WebSplider镜像
+```
+https://websplider.herokuapp.com/
+```
+该镜像采用在线的mlab数据库，数据库数据与我服务器中的数据保持单向同步。(即该镜像中数据不会被更新到我的服务器)
+
+优点是:该镜像的数据更加安全，并且生成的数据API支持https协议。
+
+缺点是:响应速度略慢
 
 
 ## 更新日志

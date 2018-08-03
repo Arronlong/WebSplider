@@ -11,6 +11,7 @@ const sharepanel = new Vue({
                 params: {
                     page
                 }
+
             }).then(res => {
                 that.allShare = res.data.data;
                 that.allPages = res.data.allpage;

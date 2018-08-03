@@ -45,7 +45,7 @@
  }
  
  #sharewrap {
-     position: absolute;
+     position: fixed;
      display: none;
      background-image: url(../imgs/bg2.jpeg);
      background-size: cover;
@@ -203,7 +203,7 @@
  }
  
  .forkme {
-     position: absolute;
+     position: fixed;
      top: 0;
      right: 0;
      border: 0;
