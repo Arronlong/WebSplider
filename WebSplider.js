@@ -209,7 +209,7 @@ app.use(async function(ctx, next) {
                     const targetTags = body.targetTags.split(',');
                     const icontent = JSON.parse(body.icontent);
 
-                    if (targetTags.every(sre => verify(str)) && Object.values(icontent).every(str => verify(str))) {
+                    if (targetTags.every(str => verify(str)) && Object.values(icontent).every(str => verify(str))) {
                         const cid = Date.now().toString();
                         const userconf = {
                             user: ctx.session.user,
