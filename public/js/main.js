@@ -22,7 +22,7 @@ const main = new Vue({
         classData: [], //保存每个输入标签的数据
         classnum: 1, //用户选择的爬取深度,默认为1
         idx: 1, //深度默认选择1
-        proxymodes: ['无代理', '西刺代理', '自定义代理'],
+        proxymodes: ['无代理', '西刺代理', '国外代理', '自定义代理'],
         proxymode: '无代理',
         inputproxy: '',
         targetUrl: '',
