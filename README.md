@@ -1,4 +1,4 @@
-[WebSplider](http://splider.docmobile.cn)
+WebSplider
 ===============
 
 基于NodeJS的在线爬虫系统。支持提供在线数据API。
@@ -28,6 +28,7 @@
 2、运行代码
 ```
 git clone https://github.com/LuckyHH/WebSplider.git
+cd WebSplider
 npm install
 npm start
 ```
@@ -397,6 +398,10 @@ ejs模板页面
 
 > * [基于WebSplider的在线新闻模块开发](https://www.docmobile.cn/artical_detiail/luckyhh/1528989508215)
 
+## WebSpliderPanel
+对该项目进行前后端分离后的前端面板部分，使用Vue.js框架，使用vue-cli构建应用。
+
+WebSplider可以单独使用，也可以配合WebSpliderPanel共同使用。
 
 ## WebSplider镜像
 ```
@@ -404,7 +409,7 @@ https://websplider.herokuapp.com/
 ```
 该镜像采用在线的mlab数据库，数据库数据与我服务器中的数据保持单向同步。(我的服务器中的数据会被同步到mlab中，mlab中原有数据不变)
 
-优点:该镜像的数据更加安全，生成的数据API支持https协议，支持抓取国外一些网站的数据。
+优点:该镜像的数据存储在mlab数据库，所以安全更有保障。生成的数据API支持https协议。支持抓取国外一些网站的数据。
 
 缺点:响应速度略慢。
 
@@ -413,6 +418,12 @@ https://websplider.herokuapp.com/
 
 [WebSplider更新日志](https://www.docmobile.cn/artical_detiail/luckyhh/1530767352093)
 
+## 注意
+```
+http://splider.docmobile.cn
+https://websplider.herokuapp.com/
+```
+均为预览地址，不推荐使用到实际项目中。你可以下载该项目部署到自己的服务器上。
 
 ## TODO
 - [x] 对GBK网页格式的抓取支持
@@ -420,9 +431,9 @@ https://websplider.herokuapp.com/
 - [x] 定义请求头
 - [x] 添加HTTP代理
 - [x] JSONP调用支持
+- [x] 前后端分离,[WebSpliderPanel](https://github.com/LuckyHH/WebSpliderPanel)
 - [ ] 优化管理界面
 - [ ] 添加更详细的使用说明
-  
 
 ## 协议
 

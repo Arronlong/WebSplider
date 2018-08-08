@@ -1,5 +1,5 @@
 module.exports = {
-    key: 'Splider:kid',
+    key: 'Authorization',
     maxAge: 3600000,
     overwrite: true,
     httpOnly: true,

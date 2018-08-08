@@ -15,6 +15,12 @@ const verify = require("./lib/verification");
 const HOSTNAME = require("./conf/conf").HOSTNAME;
 const app = new Koa();
 
+//跨域
+const header = {
+    "Access-Control-Allow-Credentials": true,
+    "Access-Control-Allow-Origin": "http://localhost:8080"
+}
+
 //设置静态目录
 app.use(serve(__dirname + "/public"));
 
@@ -36,6 +42,9 @@ app.use(async function(ctx, next) {
 //抓取预览
 app.use(async function(ctx, next) {
     if (ctx.request.path === "/result" && ctx.request.method === "GET") {
+
+        ctx.set(header);
+
         const body = ctx.request.query;
         //响应状态
         let state = true;
@@ -104,6 +113,10 @@ app.use(async function(ctx, next) {
 //登录相关
 app.use(async function(ctx, next) {
     if (ctx.request.path === "/login" && ctx.request.method === "GET") {
+
+        ctx.set(header);
+
+
         const body = ctx.request.query;
         if (body.login_user && body.login_password) {
             const user = await User.get(body.login_user, true);
@@ -133,6 +146,7 @@ app.use(async function(ctx, next) {
 //注册相关
 app.use(async function(ctx, next) {
     if (ctx.request.path === "/register" && ctx.request.method === "GET") {
+        ctx.set(header);
         const body = ctx.request.query;
         if (body.register_user && body.register_password && body.register_repeat_password && (body.register_password === body.register_repeat_password)) {
             const user = await User.get(body.register_user, false);
@@ -177,6 +191,8 @@ app.use(async function(ctx, next) {
     if (ctx.request.path === "/userstatus" && ctx.request.method === "GET") {
         //如果用户登录了，可以查看登录状态
         //这个接口用于维持客户端登录状态
+
+        ctx.set(header);
         if (ctx.session.user) {
             ctx.response.body = {
                 state: true,
@@ -196,6 +212,9 @@ app.use(async function(ctx, next) {
 //根据数据库中存的参数返回json
 app.use(async function(ctx, next) {
     if (ctx.request.path === "/save" && ctx.request.method === "GET") {
+
+        ctx.set(header);
+
         if (ctx.session.user) {
             const body = ctx.request.query;
 
@@ -275,6 +294,9 @@ app.use(async function(ctx, next) {
 // 当请求数据接口的时间比数据库中存储的数据更新的时间小24小时，说明自动更新函数在运行，此时直接返回数据库中保存的数据
 app.use(async function(ctx, next) {
     if (ctx.request.path === "/interface" && ctx.request.method === "GET") {
+
+        ctx.set(header);
+
         const body = ctx.request.query;
         let state = true;
         let resResult = null;
@@ -372,6 +394,9 @@ app.use(async function(ctx, next) {
 //用户公布的数据接口
 app.use(async function(ctx, next) {
     if (ctx.request.path === "/interface/public" && ctx.request.method === "GET") {
+
+        ctx.set(header);
+
         ctx.response.body = (await UserSpliderConf.get(null, null, '1')).splice(0, 5);
     } else {
         await next();
@@ -382,6 +407,8 @@ app.use(async function(ctx, next) {
 app.use(async function(ctx, next) {
     if (ctx.request.path === "/interface/pub" && ctx.request.method === "GET") {
         let result = await UserSpliderConf.get(null, null, '1');
+
+        ctx.set(header);
 
         ctx.response.body = {
             allpage: Math.ceil(result.length / 5),
@@ -395,7 +422,11 @@ app.use(async function(ctx, next) {
 //用户数据链接管理
 app.use(async function(ctx, next) {
     if (ctx.request.path === "/user" && ctx.request.method === "GET") {
+
         const body = ctx.request.query;
+
+        ctx.set(header);
+
         //判断链接有无参数
         if (Object.keys(body).length > 0) {
             if (ctx.session.user === body.name) {
@@ -416,6 +447,7 @@ app.use(async function(ctx, next) {
 app.use(async function(ctx, next) {
     if (ctx.request.path === "/todelete" && ctx.request.method === "GET") {
         const body = ctx.request.query;
+        ctx.set(header);
         if (Object.keys(body).length > 0) {
             if (ctx.session.user === body.user) {
                 ctx.response.body = await UserSpliderConf.delete({ cid: body.cid })
@@ -430,6 +462,7 @@ app.use(async function(ctx, next) {
 app.use(async function(ctx, next) {
     if (ctx.request.path === "/toupdate" && ctx.request.method === "GET") {
         const body = ctx.request.query;
+        ctx.set(header);
         if (Object.keys(body).length > 0) {
             if (ctx.session.user && body.cid) {
                 const msg = {};
