@@ -5,9 +5,7 @@ WebSplider
 
 1、当你想在自己的网站添加一个小的新闻模块时，你可以利用WebSplider爬虫爬取指定网站的数据，然后在后端或者前端请求数据接口，再将获得的数据构造到你的网页上。
 
-2、当你想知道自己追的剧，小说等更新没有，你可以抓取指定网站的数据(比如说视频级数)，然后在后台请求数据接口，将数据保存到你的数据库中，设置一个定时器，定时请求数据接口，将获得的数据与数据库数据对比即可。然后弄个邮件发送，监控到数据变化时，给你发送邮件。
-
-3、当你想做个聚合网站或者聚合app时，你可以利用WebSplider爬取各大站点的数据，然后调用API，构造数据到自己的APP中(今日头条就干的这种事情)。
+2、当你想做个聚合网站或者聚合app时，你可以利用WebSplider爬取各大站点的数据，然后调用API，构造数据到自己的APP中。
 
 ...
 
@@ -45,23 +43,29 @@ const superagent = require("superagent");
 const cheerio = require("cheerio");
 const app = new Koa();
 
-app.get('/', function (req, res, next) {
-    superagent.get('https://cnodejs.org/')
-        .end(function (err, sres) {
-            if (err) {
-                return next(err);
-            }
-            var $ = cheerio.load(sres.text);
+app.use(async function(ctx, next) {
+    if (ctx.request.path == "/" && ctx.request.method == "GET") {
+        ctx.body = await new Promise((resolve, reject) => {
+            superagent.get('https://cnodejs.org/')
+                .end(function(err, sres) {
+                    if (err) {
+                        reject(err);
+                    }
+                    var $ = cheerio.load(sres.text);
 
-            $('.topic_title').each(function (idx, element) {
-                var $element = $(element);
-                items.push({
-                    title: $element.attr('title'),
-                    url : $element.attr('href')
-                });
-            })
-           res.send(items);
+                    $('.topic_title').each(function(idx, element) {
+                        var $element = $(element);
+                        items.push({
+                            title: $element.attr('title'),
+                            url: $element.attr('href')
+                        });
+                    })
+                    resolve(items);
+                })
         })
+    } else {
+        next();
+    }
 })
 
 app.listen(3000);
@@ -398,18 +402,20 @@ ejs模板页面
 
 > * [基于WebSplider的在线新闻模块开发](https://www.docmobile.cn/artical_detiail/luckyhh/1528989508215)
 
-## WebSpliderPanel
-对该项目进行前后端分离后的前端面板部分，使用Vue.js框架，使用vue-cli构建应用。
-
-WebSplider可以单独使用，也可以配合WebSpliderPanel共同使用。
-
 ## WebSplider镜像
 ```
-https://websplider.herokuapp.com/
+https://splider.herokuapp.com
 ```
+对该项目进行前后端分离后的前端面板部分，使用Vue.js框架，使用vue-cli构建应用。
+
+后端API地址
+```
+https://websplider.herokuapp.com
+```
+
 该镜像采用在线的mlab数据库，数据库数据与我服务器中的数据保持单向同步。(我的服务器中的数据会被同步到mlab中，mlab中原有数据不变)
 
-优点:该镜像的数据存储在mlab数据库，所以安全更有保障。生成的数据API支持https协议。支持抓取国外一些网站的数据。
+优点:该镜像的数据存储在mlab数据库，所以安全更有保障。支持抓取国外一些网站的数据。
 
 缺点:响应速度略慢。
 
@@ -421,7 +427,7 @@ https://websplider.herokuapp.com/
 ## 注意
 ```
 http://splider.docmobile.cn
-https://websplider.herokuapp.com/
+https://splider.herokuapp.com/
 ```
 均为预览地址，不推荐使用到实际项目中。你可以下载该项目部署到自己的服务器上。
 
@@ -432,8 +438,6 @@ https://websplider.herokuapp.com/
 - [x] 添加HTTP代理
 - [x] JSONP调用支持
 - [x] 前后端分离,[WebSpliderPanel](https://github.com/LuckyHH/WebSpliderPanel)
-- [ ] 优化管理界面
-- [ ] 添加更详细的使用说明
 
 ## 协议
 

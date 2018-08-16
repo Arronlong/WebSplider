@@ -18,7 +18,7 @@ const app = new Koa();
 //跨域
 const header = {
     "Access-Control-Allow-Credentials": true,
-    "Access-Control-Allow-Origin": "https://splider.herokuapp.com"
+    "Access-Control-Allow-Origin": "http://localhost:8080"
 }
 
 //设置静态目录
